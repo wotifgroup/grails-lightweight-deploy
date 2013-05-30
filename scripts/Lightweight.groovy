@@ -93,7 +93,9 @@ buildJar = { File workDir, File jar ->
 	jar.canonicalFile.parentFile.mkdirs()
 	ant.jar(destfile: jar) {
 		fileset dir: workDir
-        fileset dir: pluginClassesDir
+        fileset(dir: pluginClassesDir) {
+            include name: "grails/plugin/lightweight/**"
+        }
 		manifest {
 			attribute name: 'Main-Class', value: resolveMainClass()
 		}
@@ -110,7 +112,12 @@ resolveJars = { ->
 	def deps = ["javax.servlet:javax.servlet-api:3.0.1",
                 "org.eclipse.jetty.aggregate:jetty-all:8.1.11.v20130520",
                 "com.google.guava:guava:14.0.1",
-                "org.yaml:snakeyaml:1.12"]
+                "org.yaml:snakeyaml:1.12",
+                "com.yammer.metrics:metrics-core:2.2.0",
+                "com.yammer.metrics:metrics-servlet:2.2.0",
+                "com.yammer.metrics:metrics-jetty:2.2.0",
+                "org.slf4j:slf4j-api:1.7.4",
+                "ch.qos.logback:logback-classic:1.0.13"]
 
     def config = buildSettings.config.grails.plugin.lightweight
 	if (config.extraDependencies instanceof Collection) {
@@ -125,7 +132,8 @@ resolveJars = { ->
 		}
 		dependencies {
 			compile(*deps) {
-				transitive = false
+				transitive = true
+                exclude "javax.servlet"
 			}
 		}
 	}
