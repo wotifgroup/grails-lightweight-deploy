@@ -1,5 +1,6 @@
 package grails.plugin.lightweight;
 
+import ch.qos.logback.classic.Level;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.File;
@@ -19,18 +20,25 @@ public class Configuration {
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
+    private Level loggingThreshold = Level.INFO;
 
-    public Configuration(Map<String, ?> httpConfig) throws IOException {
-        init(httpConfig);
+    public Configuration(Map<String, ?> config) throws IOException {
+        init(config);
     }
 
     public Configuration(String ymlFilePath) throws IOException {
         Map<String, ?> config = (Map<String, ?>) new Yaml().load(new FileReader(new File(ymlFilePath)));
-        Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
-        init(httpConfig);
+        init(config);
     }
 
-    protected void init(Map<String, ?> httpConfig) throws IOException {
+    protected void init(Map<String, ?> config) throws IOException {
+        initHttp(config);
+        initLogging(config);
+    }
+
+    protected void initHttp(Map<String, ?> config) throws IOException {
+        Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
+
         this.port = (Integer) httpConfig.get("port");
         if (httpConfig.containsKey("ssl")) {
             this.ssl = true;
@@ -52,12 +60,20 @@ public class Configuration {
         }
     }
 
-    public Integer getPort() {
-        return port;
+    protected void initLogging(Map<String, ?> config) {
+        if (config.containsKey("logging")) {
+            Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
+            if (loggingConfig.containsKey("file")) {
+                Map<String, String> fileConfig = (Map<String, String>) loggingConfig.get("file");
+                if (fileConfig.containsKey("threshold")) {
+                    this.loggingThreshold = Level.toLevel(fileConfig.get("threshold"));
+                }
+            }
+        }
     }
 
-    public boolean isSsl() {
-        return ssl;
+    public Integer getPort() {
+        return port;
     }
 
     public Integer getAdminPort() {
@@ -66,6 +82,10 @@ public class Configuration {
 
     public boolean hasAdminPort() {
         return getAdminPort() != null;
+    }
+
+    public boolean isSsl() {
+        return ssl;
     }
 
     public String getKeyStorePath() {
@@ -78,6 +98,10 @@ public class Configuration {
 
     public String getKeyStoreAlias() {
         return keyStoreAlias;
+    }
+
+    public Level getLoggingThreshold() {
+        return loggingThreshold;
     }
 
     @Override

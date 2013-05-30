@@ -3,7 +3,9 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 
 grails.project.dependency.resolution = {
-    inherits("global")
+    inherits("global") {
+        excludes "grails-plugin-log4j"
+    }
     log "warn"
 
     repositories {
@@ -18,16 +20,14 @@ grails.project.dependency.resolution = {
                 "com.yammer.metrics:metrics-core:2.2.0",
                 "org.slf4j:slf4j-api:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"
+
         compile("com.yammer.metrics:metrics-jetty:2.2.0") {
             exclude 'javax.servlet'
         }
 
         //explicitly depend on servlet-api to workaround issue with Ivy and orbit dependencies
-        compile ("javax.servlet:javax.servlet-api:3.0.1") {
-            export = false
-        }
+        compile ("javax.servlet:javax.servlet-api:3.0.1")
 		compile ('org.eclipse.jetty.aggregate:jetty-all:8.1.11.v20130520') {
-            export = false
             exclude 'javax.servlet'
 		}
     }

@@ -59,7 +59,14 @@ public class Launcher {
         log("Reading config from: " + configYmlPath);
 		this.configuration = new Configuration(configYmlPath);
         log("Using configuration: " + this.configuration);
+
+        configureLogging();
 	}
+
+    protected void configureLogging() {
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME))
+                .setLevel(this.configuration.getLoggingThreshold());
+    }
 
 	protected void start() throws IOException {
 		final File exploded = extractWar();
