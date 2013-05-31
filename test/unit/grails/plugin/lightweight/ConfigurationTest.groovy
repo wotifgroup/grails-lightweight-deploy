@@ -83,6 +83,15 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void timezoneShouldDefaultToLocal() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig();
+        attachLoggingConfig(config);
+        config.logging.file.remove("timeZone");
+        Configuration configuration = new Configuration(config);
+        assertEquals(TimeZone.default, configuration.getTimeZone());
+    }
+
+    @Test
     public void timezoneShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig();
         attachLoggingConfig(config);

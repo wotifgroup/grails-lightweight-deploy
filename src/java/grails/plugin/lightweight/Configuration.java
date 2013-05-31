@@ -25,7 +25,7 @@ public class Configuration implements FileLoggingConfiguration {
     private String keyStoreAlias;
     private boolean fileLoggingEnabled = false;
     private String logFilePath;
-    private TimeZone logFileTimeZone;
+    private TimeZone logFileTimeZone = TimeZone.getDefault();
     private Level loggingThreshold = Level.INFO;
 
     public Configuration(Map<String, ?> config) throws IOException {
@@ -150,7 +150,7 @@ public class Configuration implements FileLoggingConfiguration {
     @Override
     public Optional<String> getLogFormat() {
         //TODO: support custom log format
-        return null;
+        return Optional.absent();
     }
 
     @Override
