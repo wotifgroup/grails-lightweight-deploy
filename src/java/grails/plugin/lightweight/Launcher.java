@@ -175,7 +175,7 @@ public class Launcher {
 				JettyWebXmlConfiguration.class, TagLibConfiguration.class };
 		org.eclipse.jetty.webapp.Configuration[] configurations = new org.eclipse.jetty.webapp.Configuration[configurationClasses.length];
 		for (int i = 0; i < configurationClasses.length; i++) {
-			configurations[i] = newConfigurationInstance(configurationClasses[i]);
+			configurations[i] = Utils.newInstance(configurationClasses[i]);
 		}
 
 		context.setConfigurations(configurations);
@@ -186,18 +186,6 @@ public class Launcher {
         context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
 
 		return context;
-	}
-
-	protected org.eclipse.jetty.webapp.Configuration newConfigurationInstance(Class<?> clazz) {
-		 try {
-			return (org.eclipse.jetty.webapp.Configuration) clazz.newInstance();
-		}
-		catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	protected AbstractConnector configureExternalHttpConnector() {
@@ -232,7 +220,7 @@ public class Launcher {
 	}
 
 	protected File extractWar() throws IOException {
-		File dir = new File(getWorkDir(), "standalone-war");
+		File dir = new File(getWorkDir(), "lightweight-war");
 		deleteDir(dir);
 		dir.mkdirs();
 		return extractWar(dir);
@@ -262,75 +250,15 @@ public class Launcher {
 
 		ZipFile zipfile = new ZipFile(war);
 		for (Enumeration<? extends ZipEntry> e = zipfile.entries(); e.hasMoreElements(); ) {
-			unzip(e.nextElement(), zipfile, explodedDir);
+			Utils.unzip(e.nextElement(), zipfile, explodedDir);
 		}
 		zipfile.close();
 
 		return explodedDir;
 	}
 
-	protected void unzip(ZipEntry entry, ZipFile zipfile, File explodedDir) throws IOException {
-
-		if (entry.isDirectory()) {
-			new File(explodedDir, entry.getName()).mkdirs();
-			return;
-		}
-
-		File outputFile = new File(explodedDir, entry.getName());
-		if (!outputFile.getParentFile().exists()) {
-			outputFile.getParentFile().mkdirs();
-		}
-
-		BufferedInputStream inputStream = new BufferedInputStream(zipfile.getInputStream(entry));
-		BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-
-		try {
-			copy(inputStream, outputStream);
-		}
-		finally {
-			outputStream.close();
-			inputStream.close();
-		}
-	}
-
 	protected void copy(InputStream in, OutputStream out) throws IOException {
         ByteStreams.copy(in, out);
-	}
-
-	// from DefaultGroovyMethods.deleteDir()
-	protected boolean deleteDir(final File dir) {
-		if (!dir.exists()) {
-			return true;
-		}
-
-		if (!dir.isDirectory()) {
-			return false;
-		}
-
-		File[] files = dir.listFiles();
-		if (files == null) {
-			return false;
-		}
-
-		boolean result = true;
-		for (File file : files) {
-			if (file.isDirectory()) {
-				if (!deleteDir(file)) {
-					result = false;
-				}
-			}
-			else {
-				if (!file.delete()) {
-					result = false;
-				}
-			}
-		}
-
-		if (!dir.delete()) {
-			result = false;
-		}
-
-		return result;
 	}
 
 	protected void deleteExplodedOnShutdown(final File exploded) {
