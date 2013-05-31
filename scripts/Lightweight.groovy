@@ -17,10 +17,6 @@ target(lightweight: 'Build a lightweight app with embedded jetty') {
 	depends configureProxy, compile, loadPlugins
 
 	try {
-		if ('development'.equals(grailsEnv) && !argsMap.warfile) {
-			event 'StatusUpdate', ["You're running in the development environment but haven't specified a war file, so one will be built with development settings."]
-		}
-
 		File workDir = new File(grailsSettings.projectTargetDir, 'lightweight-temp-' + System.currentTimeMillis()).absoluteFile
 		if (!workDir.deleteDir()) {
 			event 'StatusError', ["Unable to delete $workDir"]
@@ -31,8 +27,8 @@ target(lightweight: 'Build a lightweight app with embedded jetty') {
 			return
 		}
 
-		String jarname = argsMap.params[0]
-		File jar = jarname ? new File(jarname).absoluteFile : new File(workDir.parentFile, 'lightweight-' + grailsAppVersion + '.jar').absoluteFile
+		String jarName = argsMap.artifactName
+		File jar = jarName ? new File("target/${jarName}.jar").absoluteFile : new File(workDir.parentFile, defaultJarName()).absoluteFile
 
 		event 'StatusUpdate', ["Building lightweight jar $jar.path"]
 
@@ -104,6 +100,19 @@ buildJar = { File workDir, File jar ->
 	}
 
 	true
+}
+
+defaultJarName = { ->
+    String appName = metadata['app.name']
+    String appVersion = metadata['app.version'] ?: '0.1-SNAPSHOT'
+    String appBuildDate = new Date().format("yyyy.MM.dd")
+    String appBuildNumber = argsMap.release;
+    String appRelease = appBuildDate
+    if (appBuildNumber) {
+        appRelease += "_" + appBuildNumber
+    }
+    String artifactName = "$appName-$appVersion-$appRelease"
+    "${artifactName}.jar"
 }
 
 extractJar = { File jarFile, File workDir ->
