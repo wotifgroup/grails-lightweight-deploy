@@ -13,11 +13,11 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 /**
  * Borrowed heavily from com.yammer.dropwizard.logging.LoggingFactory.
  */
-public class LoggingFactory {
+public class ServerLoggingFactory {
 
     private final Configuration config;
 
-    public LoggingFactory(Configuration config) {
+    public ServerLoggingFactory(Configuration config) {
         this.config = config;
     }
 
@@ -29,10 +29,8 @@ public class LoggingFactory {
 
         final Logger root = configureLevels();
 
-        if (this.config.isFileLoggingEnabled()) {
-            root.addAppender(AsyncAppender.wrap(LogbackFactory.buildFileAppender(this.config,
-                                                                                 root.getLoggerContext())));
-        }
+        root.addAppender(AsyncAppender.wrap(LogbackFactory.buildFileAppender(this.config.getServerLogConfiguration(),
+                                                                             root.getLoggerContext())));
 
         final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
         try {
@@ -64,7 +62,7 @@ public class LoggingFactory {
 
         root.getLoggerContext().addListener(propagator);
 
-        root.setLevel(config.getThreshold());
+        root.setLevel(config.getBaseLoggingThreshold());
 
         return root;
     }

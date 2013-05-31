@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * Stores the configuration for the jetty server
  */
-public class Configuration implements FileLoggingConfiguration {
+public class Configuration {
 
     private Integer port;
     private boolean ssl = false;
@@ -23,10 +23,11 @@ public class Configuration implements FileLoggingConfiguration {
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
-    private boolean fileLoggingEnabled = false;
-    private String logFilePath;
-    private TimeZone logFileTimeZone = TimeZone.getDefault();
-    private Level loggingThreshold = Level.INFO;
+    private Level baseLoggingThreshold = Level.INFO;
+    private boolean serverLoggingEnabled = false;
+    private FileLoggingConfiguration serverLogConfiguration;
+    private boolean requestLoggingEnabled = false;
+    private FileLoggingConfiguration requestLogConfiguration;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -67,20 +68,44 @@ public class Configuration implements FileLoggingConfiguration {
     }
 
     protected void initLogging(Map<String, ?> config) {
+        initRequestLogging(config);
+        initServerLogging(config);
+    }
+
+    protected void initRequestLogging(Map<String, ?> config) {
+        Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
+        if (httpConfig.containsKey("requestLog")) {
+            Map<String, String> loggingConfig = (Map<String, String>) ((Map<String, ?>) httpConfig.get("requestLog")).get("file");
+            this.requestLoggingEnabled = true;
+            this.requestLogConfiguration = new FileLoggingConfiguration(loggingConfig.get("currentLogFilename"));
+            if (loggingConfig.containsKey("timeZone")) {
+                this.requestLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(loggingConfig.get("timeZone")));
+            }
+            if (loggingConfig.containsKey("threshold")) {
+                this.requestLogConfiguration.setLoggingThreshold(Level.toLevel(loggingConfig.get("threshold")));
+            }
+        }
+    }
+
+    protected void initServerLogging(Map<String, ?> config) {
         if (config.containsKey("logging")) {
             Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
             if (loggingConfig.containsKey("file")) {
-                this.fileLoggingEnabled = true;
+                this.serverLoggingEnabled = true;
                 Map<String, String> fileConfig = (Map<String, String>) loggingConfig.get("file");
-                this.logFilePath = fileConfig.get("currentLogFilename");
+                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig.get("currentLogFilename"));
                 if (fileConfig.containsKey("timeZone")) {
-                    this.logFileTimeZone = TimeZone.getTimeZone(fileConfig.get("timeZone"));
+                    this.serverLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(fileConfig.get("timeZone")));
                 }
                 if (fileConfig.containsKey("threshold")) {
-                    this.loggingThreshold = Level.toLevel(fileConfig.get("threshold"));
+                    this.serverLogConfiguration.setLoggingThreshold(Level.toLevel(fileConfig.get("threshold")));
                 }
             }
         }
+    }
+
+    public Level getBaseLoggingThreshold() {
+        return baseLoggingThreshold;
     }
 
     public Integer getPort() {
@@ -95,8 +120,12 @@ public class Configuration implements FileLoggingConfiguration {
         return getAdminPort() != null;
     }
 
-    public boolean isFileLoggingEnabled() {
-        return this.fileLoggingEnabled;
+    public boolean isRequestLoggingEnabled() {
+        return requestLoggingEnabled;
+    }
+
+    public boolean isServerLoggingEnabled() {
+        return this.serverLoggingEnabled;
     }
 
     public boolean isSsl() {
@@ -115,42 +144,12 @@ public class Configuration implements FileLoggingConfiguration {
         return keyStoreAlias;
     }
 
-    public Level getThreshold() {
-        return loggingThreshold;
+    public FileLoggingConfiguration getServerLogConfiguration() {
+        return serverLogConfiguration;
     }
 
-    @Override
-    public TimeZone getTimeZone() {
-        return this.logFileTimeZone;
-    }
-
-    @Override
-    public boolean isArchive() {
-        //not currently supported because of bug in logback's file rolling.
-        return false;
-    }
-
-    @Override
-    public String getCurrentLogFilename() {
-        return this.logFilePath;
-    }
-
-    @Override
-    public String getArchivedLogFilenamePattern() {
-        //not currently supported because of bug in logback's file rolling.
-        return null;
-    }
-
-    @Override
-    public int getArchivedFileCount() {
-        //not currently supported because of bug in logback's file rolling.
-        return 0;
-    }
-
-    @Override
-    public Optional<String> getLogFormat() {
-        //TODO: support custom log format
-        return Optional.absent();
+    public FileLoggingConfiguration getRequestLogConfiguration() {
+        return requestLogConfiguration;
     }
 
     @Override

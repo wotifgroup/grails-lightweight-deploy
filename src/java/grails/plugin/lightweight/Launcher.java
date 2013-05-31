@@ -4,7 +4,8 @@ import com.google.common.io.ByteStreams;
 import com.yammer.metrics.jetty.InstrumentedSelectChannelConnector;
 import com.yammer.metrics.jetty.InstrumentedSslSocketConnector;
 import com.yammer.metrics.reporting.AdminServlet;
-import grails.plugin.lightweight.logging.LoggingFactory;
+import grails.plugin.lightweight.logging.RequestLoggingFactory;
+import grails.plugin.lightweight.logging.ServerLoggingFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -68,8 +69,10 @@ public class Launcher {
 	}
 
     protected void configureLogging() {
-        LoggingFactory loggingFactory = new LoggingFactory(this.configuration);
-        loggingFactory.configure();
+        if (this.configuration.isServerLoggingEnabled()) {
+            ServerLoggingFactory loggingFactory = new ServerLoggingFactory(this.configuration);
+            loggingFactory.configure();
+        }
     }
 
 	protected void start() throws IOException {
@@ -99,6 +102,10 @@ public class Launcher {
         handlerCollection.addHandler(configureExternal(server, exploded));
         if (this.configuration.hasAdminPort()) {
             handlerCollection.addHandler(configureInternal(server));
+        }
+        if (this.configuration.isRequestLoggingEnabled()) {
+            RequestLoggingFactory requestLoggingFactory = new RequestLoggingFactory(this.configuration);
+            handlerCollection.addHandler(requestLoggingFactory.configure());
         }
         server.setHandler(handlerCollection);
 

@@ -1,124 +1,173 @@
-package grails.plugin.lightweight;
+package grails.plugin.lightweight
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import ch.qos.logback.classic.Level;
-import java.util.TimeZone;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import ch.qos.logback.classic.Level
+import org.junit.Test
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertTrue
 
 public class ConfigurationTest {
 
     @Test
     public void shouldAssumeHttpIfNoSslBlock() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        ((Map) config.get("http")).remove("ssl");
-        Configuration configuration = new Configuration(config);
-        assertEquals(1234, configuration.getPort().intValue());
-        assertFalse(configuration.isSsl());
+        Map<String, ? extends Object> config = defaultConfig()
+        config.http.remove("ssl")
+        Configuration configuration = new Configuration(config)
+        assertEquals(1234, configuration.getPort().intValue())
+        assertFalse(configuration.isSsl())
     }
 
     @Test
     public void shouldAssumeHttpsIfSslBlock() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        Configuration configuration = new Configuration(config);
-        assertEquals(1234, configuration.getPort().intValue());
-        assertTrue(configuration.isSsl());
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals(1234, configuration.getPort().intValue())
+        assertTrue(configuration.isSsl())
     }
 
     @Test
     public void shouldSetKeystoreAliasFromConfig() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        Configuration configuration = new Configuration(config);
-        assertEquals("app.domain.com", configuration.getKeyStoreAlias());
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals("app.domain.com", configuration.getKeyStoreAlias())
     }
 
     @Test
     public void shouldSetKeystorePathFromConfig() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        Configuration configuration = new Configuration(config);
-        assertEquals("/etc/pki/tls/jks/test.jks", configuration.getKeyStorePath());
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals("/etc/pki/tls/jks/test.jks", configuration.getKeyStorePath())
     }
 
     @Test
     public void shouldSetKeystorePasswordFromConfig() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        Configuration configuration = new Configuration(config);
-        assertEquals("password", configuration.getKeyStorePassword());
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals("password", configuration.getKeyStorePassword())
     }
 
     @Test
-    public void loggingThresholdShouldDefaultToInfo() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig();
-        Configuration configuration = new Configuration(config);
-        assertEquals(Level.INFO, configuration.getThreshold());
+    public void baseThresholdShouldBeInfo() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.INFO, configuration.getBaseLoggingThreshold())
     }
 
     @Test
-    public void ifLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
-        Map<String, Map<String, Object>> config = defaultConfig();
-        attachLoggingConfig(config);
-        Configuration configuration = new Configuration(config);
-        assertTrue(configuration.isFileLoggingEnabled());
+    public void serverLoggingThresholdShouldDefaultToInfo() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerLoggingConfig(config).file.remove("threshold")
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.INFO, configuration.serverLogConfiguration.threshold)
     }
 
     @Test
-    public void loggingThresholdShouldBeSetToValueInFile() throws IOException {
-        Map<String, Map<String, Object>> config = defaultConfig();
-        attachLoggingConfig(config);
-        Configuration configuration = new Configuration(config);
-        assertEquals(Level.WARN, configuration.getThreshold());
+    public void ifServerLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertTrue(configuration.isServerLoggingEnabled())
     }
 
     @Test
-    public void loggingFileShouldBeSetToValueInFile() throws IOException {
-        Map<String, Map<String, Object>> config = defaultConfig();
-        attachLoggingConfig(config);
-        Configuration configuration = new Configuration(config);
-        assertEquals("/app/logs/server.log", configuration.getCurrentLogFilename());
+    public void serverloggingThresholdShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.WARN, configuration.serverLogConfiguration.threshold)
     }
 
     @Test
-    public void timezoneShouldDefaultToLocal() throws IOException {
-        Map<String, Map<String, Object>> config = defaultConfig();
-        attachLoggingConfig(config);
-        config.logging.file.remove("timeZone");
-        Configuration configuration = new Configuration(config);
-        assertEquals(TimeZone.default, configuration.getTimeZone());
+    public void serverLoggingFileShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("/app/logs/server.log", configuration.serverLogConfiguration.currentLogFilename)
     }
 
     @Test
-    public void timezoneShouldBeSetToValueInFile() throws IOException {
-        Map<String, Map<String, Object>> config = defaultConfig();
-        attachLoggingConfig(config);
-        Configuration configuration = new Configuration(config);
-        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.getTimeZone());
+    public void serverLoggingTimezoneShouldDefaultToLocal() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        config.logging.file.remove("timeZone")
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.default, configuration.serverLogConfiguration.timeZone)
     }
+
+    @Test
+    public void serverLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.serverLogConfiguration.timeZone)
+    }
+    
+    @Test
+    public void requestLoggingThresholdShouldDefaultToInfo() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachRequestLoggingConfig(config).file.remove("threshold")
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.INFO, configuration.requestLogConfiguration.threshold)
+    }
+
+    @Test
+    public void ifrequestLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertTrue(configuration.requestLoggingEnabled)
+    }
+
+    @Test
+    public void requestloggingThresholdShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.ALL, configuration.requestLogConfiguration.threshold)
+    }
+
+    @Test
+    public void requestLoggingFileShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("/app/logs/request.log", configuration.requestLogConfiguration.currentLogFilename)
+    }
+
+    @Test
+    public void requestLoggingTimezoneShouldDefaultToLocal() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config).file.remove("timeZone")
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.default, configuration.requestLogConfiguration.timeZone)
+    }
+
+    @Test
+    public void requestLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.requestLogConfiguration.timeZone)
+    }    
 
     protected Map<String, Map<String, Object>> defaultConfig() {
-        Map<String, Object> httpsConfig = new HashMap<String, Object>();
-        httpsConfig.put("port", 1234);
-        Map<String, Object> sslConfig = new HashMap<String, Object>();
-        sslConfig.put("keyStore", "/etc/pki/tls/jks/test.jks");
-        sslConfig.put("keyStorePassword", "password");
-        sslConfig.put("certAlias", "app.domain.com");
-        httpsConfig.put("ssl", sslConfig);
-        Map<String, Map<String, Object>> config = new HashMap<String, Map<String, Object>>();
-        config.put("http", httpsConfig);
-        return config;
+        [http: [port: 1234,
+                ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
+                      keyStorePassword: "password",
+                      certAlias: "app.domain.com"]]]
     }
 
-    protected void attachLoggingConfig(Map<String, Map<String, Object>> config) {
-        Map<String, Object> loggingConfig = new HashMap<String, Object>();
-        Map<String, Object> loggingFileConfig = new HashMap<String, Object>();
-        loggingFileConfig.put("threshold", Level.WARN.levelStr);
-        loggingFileConfig.put("currentLogFilename", "/app/logs/server.log");
-        loggingFileConfig.put("timeZone", "GMT+10");
-        loggingConfig.put("file", loggingFileConfig);
-        config.put("logging", loggingConfig);
+    protected def attachRequestLoggingConfig(def config) {
+        config.http.requestLog = [file: [threshold: Level.ALL.levelStr,
+                                         currentLogFilename: "/app/logs/request.log",
+                                         timeZone: "GMT+10"]]
+        config.http.requestLog
+    }
+
+    protected Map<String, Object> attachServerLoggingConfig(Map<String, Map<String, Object>> config) {
+        config.logging = [file: [threshold: Level.WARN.levelStr,
+                                 currentLogFilename: "/app/logs/server.log",
+                                 timeZone: "GMT+10"]]
+        config.logging
     }
 }
