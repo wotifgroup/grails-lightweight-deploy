@@ -14,7 +14,8 @@ grails.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
-        compile 'org.grails.plugins:logback:0.3.1'
+        build "org.redline-rpm:redline:1.1.12",
+              "commons-io:commons-io:2.4"
 
         compile "com.google.guava:guava:14.0.1",
                 "org.yaml:snakeyaml:1.12",
