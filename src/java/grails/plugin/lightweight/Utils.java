@@ -1,5 +1,6 @@
 package grails.plugin.lightweight;
 
+import com.google.common.io.ByteStreams;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -44,18 +45,6 @@ public class Utils {
 
 		return result;
 	}
-
-    public static <T> T newInstance(Class<T> clazz) {
-		try {
-			return clazz.newInstance();
-		}
-		catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-    }
 
 	public static void unzip(ZipEntry entry, ZipFile zipfile, File explodedDir) throws IOException {
 

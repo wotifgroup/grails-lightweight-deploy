@@ -61,9 +61,9 @@ public class Launcher {
 	}
 
 	public Launcher(String configYmlPath) throws IOException {
-        log("Reading config from: " + configYmlPath);
+        logger.info("Reading config from: " + configYmlPath);
 		this.configuration = new Configuration(configYmlPath);
-        log("Using configuration: " + this.configuration);
+        logger.info("Using configuration: " + this.configuration);
 
         configureLogging();
 	}
@@ -91,7 +91,7 @@ public class Launcher {
 		File temp = File.createTempFile("webdefault", ".war").getAbsoluteFile();
 		temp.getParentFile().mkdirs();
 		temp.deleteOnExit();
-		copy(embeddedWebdefault, new FileOutputStream(temp));
+		ByteStreams.copy(embeddedWebdefault, new FileOutputStream(temp));
 		return temp;
 	}
 
@@ -114,10 +114,10 @@ public class Launcher {
 
     protected Handler configureExternal(Server server, File exploded) throws IOException {
 		if (this.configuration.isSsl()) {
-            log("Creating https connector");
+            logger.info("Creating https connector");
 			addConnector(server, configureExternalHttpsConnector());
 		} else {
-            log("Creating http connector");
+            logger.info("Creating http connector");
 		    addConnector(server, configureExternalHttpConnector());
         }
 
@@ -125,7 +125,7 @@ public class Launcher {
     }
 
     protected Handler configureInternal(Server server) {
-        log("Configuring admin connector");
+        logger.info("Configuring admin connector");
 
         addConnector(server, configureInternalConnector());
 
@@ -144,7 +144,7 @@ public class Launcher {
 	protected void startJetty(Server server) {
 		try {
 			server.start();
-			log("Startup complete. Server running on " + this.configuration.getPort());
+			logger.info("Startup complete. Server running on " + this.configuration.getPort());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -169,16 +169,14 @@ public class Launcher {
 		System.setProperty("java.naming.factory.url.pkgs", "org.eclipse.jetty.jndi");
 		System.setProperty("java.naming.factory.initial", "org.eclipse.jetty.jndi.InitialContextFactory");
 
-		Class<?>[] configurationClasses = {
-				WebInfConfiguration.class, WebXmlConfiguration.class, MetaInfConfiguration.class,
-				FragmentConfiguration.class, EnvConfiguration.class, PlusConfiguration.class,
-				JettyWebXmlConfiguration.class, TagLibConfiguration.class };
-		org.eclipse.jetty.webapp.Configuration[] configurations = new org.eclipse.jetty.webapp.Configuration[configurationClasses.length];
-		for (int i = 0; i < configurationClasses.length; i++) {
-			configurations[i] = Utils.newInstance(configurationClasses[i]);
-		}
-
-		context.setConfigurations(configurations);
+		context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[] {new WebInfConfiguration(),
+                                                                                new WebXmlConfiguration(),
+                                                                                new MetaInfConfiguration(),
+                                                                                new FragmentConfiguration(),
+                                                                                new EnvConfiguration(),
+                                                                                new PlusConfiguration(),
+                                                                                new JettyWebXmlConfiguration(),
+                                                                                new TagLibConfiguration()});
 		context.setDefaultsDescriptor(webDefaults.getPath());
 
 		System.setProperty("TomcatKillSwitch.active", "true"); // workaround to prevent server exiting
@@ -221,14 +219,14 @@ public class Launcher {
 
 	protected File extractWar() throws IOException {
 		File dir = new File(getWorkDir(), "lightweight-war");
-		deleteDir(dir);
+		Utils.deleteDir(dir);
 		dir.mkdirs();
 		return extractWar(dir);
 	}
 
 	protected File extractWar(File dir) throws IOException {
         String filePath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        log("Exploding jar at: " + filePath);
+        logger.info("Exploding jar at: " + filePath);
         FileInputStream fileInputStream = new FileInputStream(new File(filePath));
 		return extractWar(fileInputStream, File.createTempFile("embedded", ".war", dir).getAbsoluteFile());
 	}
@@ -236,7 +234,7 @@ public class Launcher {
 	protected File extractWar(InputStream embeddedWarfile, File destinationWarfile) throws IOException {
 		destinationWarfile.getParentFile().mkdirs();
 		destinationWarfile.deleteOnExit();
-		copy(embeddedWarfile, new FileOutputStream(destinationWarfile));
+		ByteStreams.copy(embeddedWarfile, new FileOutputStream(destinationWarfile));
 		return explode(destinationWarfile);
 	}
 
@@ -257,20 +255,12 @@ public class Launcher {
 		return explodedDir;
 	}
 
-	protected void copy(InputStream in, OutputStream out) throws IOException {
-        ByteStreams.copy(in, out);
-	}
-
 	protected void deleteExplodedOnShutdown(final File exploded) {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				deleteDir(exploded);
+				Utils.deleteDir(exploded);
 			}
 		});
 	}
-
-    private void log(String message) {
-        logger.info(message);
-    }
 }
