@@ -4,7 +4,7 @@ grails.project.test.reports.dir = "target/test-reports"
 
 grails.project.dependency.resolution = {
     inherits("global") {
-        excludes "grails-plugin-log4j"
+        excludes 'grails-plugin-log4j', 'log4j', "slf4j-jdk14"
     }
     log "warn"
 
@@ -14,15 +14,20 @@ grails.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
+        compile 'org.grails.plugins:logback:0.3.1'
+
         compile "com.google.guava:guava:14.0.1",
                 "org.yaml:snakeyaml:1.12",
-                "com.yammer.metrics:metrics-servlet:2.2.0",
                 "com.yammer.metrics:metrics-core:2.2.0",
                 "org.slf4j:slf4j-api:1.7.4",
+                "org.slf4j:jul-to-slf4j:1.7.4",
+                "org.slf4j:log4j-over-slf4j:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"
 
-        compile("com.yammer.metrics:metrics-jetty:2.2.0") {
+        compile("com.yammer.metrics:metrics-jetty:2.2.0",
+                "com.yammer.metrics:metrics-servlet:2.2.0") {
             exclude 'javax.servlet'
+            exclude "jetty-server"
         }
 
         //explicitly depend on servlet-api to workaround issue with Ivy and orbit dependencies
@@ -39,3 +44,5 @@ grails.project.dependency.resolution = {
         }
     }
 }
+
+System.setProperty("logback.configurationFile", "${basedir}/grails-app/conf/logback.xml")

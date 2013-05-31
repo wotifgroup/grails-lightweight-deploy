@@ -1,11 +1,11 @@
 package grails.plugin.lightweight;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import ch.qos.logback.classic.Level;
+import java.util.TimeZone;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,19 +55,39 @@ public class ConfigurationTest {
     public void loggingThresholdShouldDefaultToInfo() throws IOException {
         Map<String, ? extends Object> config = defaultConfig();
         Configuration configuration = new Configuration(config);
-        assertEquals(Level.INFO, configuration.getLoggingThreshold());
+        assertEquals(Level.INFO, configuration.getThreshold());
+    }
+
+    @Test
+    public void ifLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig();
+        attachLoggingConfig(config);
+        Configuration configuration = new Configuration(config);
+        assertTrue(configuration.isFileLoggingEnabled());
     }
 
     @Test
     public void loggingThresholdShouldBeSetToValueInFile() throws IOException {
-        Map<String, Object> loggingConfig = new HashMap<String, Object>();
-        Map<String, Object> loggingFileConfig = new HashMap<String, Object>();
-        loggingFileConfig.put("threshold", Level.WARN.levelStr);
-        loggingConfig.put("file", loggingFileConfig);
         Map<String, Map<String, Object>> config = defaultConfig();
-        config.put("logging", loggingConfig);
+        attachLoggingConfig(config);
         Configuration configuration = new Configuration(config);
-        assertEquals(Level.WARN, configuration.getLoggingThreshold());
+        assertEquals(Level.WARN, configuration.getThreshold());
+    }
+
+    @Test
+    public void loggingFileShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig();
+        attachLoggingConfig(config);
+        Configuration configuration = new Configuration(config);
+        assertEquals("/app/logs/server.log", configuration.getCurrentLogFilename());
+    }
+
+    @Test
+    public void timezoneShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig();
+        attachLoggingConfig(config);
+        Configuration configuration = new Configuration(config);
+        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.getTimeZone());
     }
 
     protected Map<String, Map<String, Object>> defaultConfig() {
@@ -83,4 +103,13 @@ public class ConfigurationTest {
         return config;
     }
 
+    protected void attachLoggingConfig(Map<String, Map<String, Object>> config) {
+        Map<String, Object> loggingConfig = new HashMap<String, Object>();
+        Map<String, Object> loggingFileConfig = new HashMap<String, Object>();
+        loggingFileConfig.put("threshold", Level.WARN.levelStr);
+        loggingFileConfig.put("currentLogFilename", "/app/logs/server.log");
+        loggingFileConfig.put("timeZone", "GMT+10");
+        loggingConfig.put("file", loggingFileConfig);
+        config.put("logging", loggingConfig);
+    }
 }

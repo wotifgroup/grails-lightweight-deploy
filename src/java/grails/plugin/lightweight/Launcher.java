@@ -4,6 +4,7 @@ import com.google.common.io.ByteStreams;
 import com.yammer.metrics.jetty.InstrumentedSelectChannelConnector;
 import com.yammer.metrics.jetty.InstrumentedSslSocketConnector;
 import com.yammer.metrics.reporting.AdminServlet;
+import grails.plugin.lightweight.logging.LoggingFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -50,12 +51,15 @@ public class Launcher {
 	 * Start the server.
 	 */
 	public static void main(String[] args) throws IOException {
-		final Launcher launcher = new Launcher(args);
+        if (args.length < 1) {
+            throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
+        }
+
+		final Launcher launcher = new Launcher(args[0]);
 		launcher.start();
 	}
 
-	public Launcher(String[] args) throws IOException {
-        String configYmlPath = args[0];
+	public Launcher(String configYmlPath) throws IOException {
         log("Reading config from: " + configYmlPath);
 		this.configuration = new Configuration(configYmlPath);
         log("Using configuration: " + this.configuration);
@@ -64,8 +68,8 @@ public class Launcher {
 	}
 
     protected void configureLogging() {
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME))
-                .setLevel(this.configuration.getLoggingThreshold());
+        LoggingFactory loggingFactory = new LoggingFactory(this.configuration);
+        loggingFactory.configure();
     }
 
 	protected void start() throws IOException {

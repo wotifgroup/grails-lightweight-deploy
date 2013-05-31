@@ -87,6 +87,8 @@ buildJar = { File workDir, File jar ->
     FileCopyUtils.copy new File(pluginDir, 'grails-app/conf/webdefault.xml'), webDefaults
 
 	for (jarPath in resolveJars()) {
+        println "Extracting jar $jarPath"
+        //event 'StatusUpdate', ["Extracting jar $jarPath"]
         extractJar(new File(jarPath), workDir)
 	}
 
@@ -117,6 +119,7 @@ resolveJars = { ->
                 "com.yammer.metrics:metrics-servlet:2.2.0",
                 "com.yammer.metrics:metrics-jetty:2.2.0",
                 "org.slf4j:slf4j-api:1.7.4",
+                "org.slf4j:jul-to-slf4j:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"]
 
     def config = buildSettings.config.grails.plugin.lightweight
@@ -133,7 +136,7 @@ resolveJars = { ->
 		dependencies {
 			compile(*deps) {
 				transitive = true
-                exclude "javax.servlet"
+                excludes "javax.servlet", "jetty-server"
 			}
 		}
 	}

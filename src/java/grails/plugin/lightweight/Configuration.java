@@ -2,17 +2,20 @@ package grails.plugin.lightweight;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
+import grails.plugin.lightweight.logging.FileLoggingConfiguration;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
+import java.util.TimeZone;
 import org.yaml.snakeyaml.Yaml;
 
 /**
  * Stores the configuration for the jetty server
  */
-public class Configuration {
+public class Configuration implements FileLoggingConfiguration {
 
     private Integer port;
     private boolean ssl = false;
@@ -20,6 +23,9 @@ public class Configuration {
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
+    private boolean fileLoggingEnabled = false;
+    private String logFilePath;
+    private TimeZone logFileTimeZone;
     private Level loggingThreshold = Level.INFO;
 
     public Configuration(Map<String, ?> config) throws IOException {
@@ -64,7 +70,12 @@ public class Configuration {
         if (config.containsKey("logging")) {
             Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
             if (loggingConfig.containsKey("file")) {
+                this.fileLoggingEnabled = true;
                 Map<String, String> fileConfig = (Map<String, String>) loggingConfig.get("file");
+                this.logFilePath = fileConfig.get("currentLogFilename");
+                if (fileConfig.containsKey("timeZone")) {
+                    this.logFileTimeZone = TimeZone.getTimeZone(fileConfig.get("timeZone"));
+                }
                 if (fileConfig.containsKey("threshold")) {
                     this.loggingThreshold = Level.toLevel(fileConfig.get("threshold"));
                 }
@@ -84,6 +95,10 @@ public class Configuration {
         return getAdminPort() != null;
     }
 
+    public boolean isFileLoggingEnabled() {
+        return this.fileLoggingEnabled;
+    }
+
     public boolean isSsl() {
         return ssl;
     }
@@ -100,8 +115,42 @@ public class Configuration {
         return keyStoreAlias;
     }
 
-    public Level getLoggingThreshold() {
+    public Level getThreshold() {
         return loggingThreshold;
+    }
+
+    @Override
+    public TimeZone getTimeZone() {
+        return this.logFileTimeZone;
+    }
+
+    @Override
+    public boolean isArchive() {
+        //not currently supported because of bug in logback's file rolling.
+        return false;
+    }
+
+    @Override
+    public String getCurrentLogFilename() {
+        return this.logFilePath;
+    }
+
+    @Override
+    public String getArchivedLogFilenamePattern() {
+        //not currently supported because of bug in logback's file rolling.
+        return null;
+    }
+
+    @Override
+    public int getArchivedFileCount() {
+        //not currently supported because of bug in logback's file rolling.
+        return 0;
+    }
+
+    @Override
+    public Optional<String> getLogFormat() {
+        //TODO: support custom log format
+        return null;
     }
 
     @Override
