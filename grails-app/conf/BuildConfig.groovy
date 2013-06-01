@@ -14,9 +14,6 @@ grails.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
-        build "org.redline-rpm:redline:1.1.12",
-              "commons-io:commons-io:2.4"
-
         compile "com.google.guava:guava:14.0.1",
                 "org.yaml:snakeyaml:1.12",
                 "com.yammer.metrics:metrics-core:2.2.0",
