@@ -1,22 +1,27 @@
 package grails.plugin.lightweight;
 
+import com.codahale.metrics.Clock;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector;
+import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
+import com.codahale.metrics.servlet.DefaultWebappMetricsFilter;
+import com.codahale.metrics.servlets.AdminServlet;
+import com.codahale.metrics.servlets.HealthCheckServlet;
+import com.codahale.metrics.servlets.MetricsServlet;
 import com.google.common.io.ByteStreams;
-import com.yammer.metrics.jetty.InstrumentedSelectChannelConnector;
-import com.yammer.metrics.jetty.InstrumentedSslSocketConnector;
-import com.yammer.metrics.reporting.AdminServlet;
 import grails.plugin.lightweight.logging.RequestLoggingFactory;
 import grails.plugin.lightweight.logging.ServerLoggingFactory;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.servlet.DispatcherType;
 import org.eclipse.jetty.plus.webapp.EnvConfiguration;
 import org.eclipse.jetty.plus.webapp.PlusConfiguration;
 import org.eclipse.jetty.server.AbstractConnector;
@@ -26,6 +31,7 @@ import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.FragmentConfiguration;
 import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
@@ -47,6 +53,8 @@ public class Launcher {
     private static final String INTERNAL_CONNECTOR_NAME = "internal";
 
 	private Configuration configuration;
+    private MetricRegistry metricsRegistry;
+    private HealthCheckRegistry healthCheckRegistry;
 
 	/**
 	 * Start the server.
@@ -61,6 +69,9 @@ public class Launcher {
 	}
 
 	public Launcher(String configYmlPath) throws IOException {
+        this.metricsRegistry = new MetricRegistry();
+        this.healthCheckRegistry = new HealthCheckRegistry();
+
         logger.info("Reading config from: " + configYmlPath);
 		this.configuration = new Configuration(configYmlPath);
         logger.info("Using configuration: " + this.configuration);
@@ -157,6 +168,8 @@ public class Launcher {
         final ServletContextHandler handler = new ServletContextHandler();
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
         handler.setConnectorNames(new String[]{INTERNAL_CONNECTOR_NAME});
+        handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY,healthCheckRegistry);
+        handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, metricsRegistry);
         return handler;
     }
 
@@ -169,14 +182,16 @@ public class Launcher {
 		System.setProperty("java.naming.factory.url.pkgs", "org.eclipse.jetty.jndi");
 		System.setProperty("java.naming.factory.initial", "org.eclipse.jetty.jndi.InitialContextFactory");
 
-		context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[] {new WebInfConfiguration(),
-                                                                                new WebXmlConfiguration(),
-                                                                                new MetaInfConfiguration(),
-                                                                                new FragmentConfiguration(),
-                                                                                new EnvConfiguration(),
-                                                                                new PlusConfiguration(),
-                                                                                new JettyWebXmlConfiguration(),
-                                                                                new TagLibConfiguration()});
+        context.addFilter(DefaultWebappMetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+
+        context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
+                                                                               new WebXmlConfiguration(),
+                                                                               new MetaInfConfiguration(),
+                                                                               new FragmentConfiguration(),
+                                                                               new EnvConfiguration(),
+                                                                               new PlusConfiguration(),
+                                                                               new JettyWebXmlConfiguration(),
+                                                                               new TagLibConfiguration()});
 		context.setDefaultsDescriptor(webDefaults.getPath());
 
 		System.setProperty("TomcatKillSwitch.active", "true"); // workaround to prevent server exiting
@@ -187,18 +202,28 @@ public class Launcher {
 	}
 
 	protected AbstractConnector configureExternalHttpConnector() {
-        InstrumentedSelectChannelConnector connector = new InstrumentedSelectChannelConnector(this.configuration.getPort());
+        InstrumentedSelectChannelConnector connector = new InstrumentedSelectChannelConnector(
+            this.metricsRegistry,
+            this.configuration.getPort(),
+            Clock.defaultClock());
         connector.setName("external");
         connector.setUseDirectBuffers(true);
         return connector;
 	}
 
 	protected AbstractConnector configureExternalHttpsConnector() {
-        InstrumentedSslSocketConnector connector = new InstrumentedSslSocketConnector(this.configuration.getPort());
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setCertAlias(this.configuration.getKeyStoreAlias());
+        sslContextFactory.setKeyStorePath(this.configuration.getKeyStorePath());
+        sslContextFactory.setKeyStorePassword(this.configuration.getKeyStorePassword());
+
+        InstrumentedSslSocketConnector connector = new InstrumentedSslSocketConnector(
+            this.metricsRegistry,
+            this.configuration.getPort(),
+            sslContextFactory,
+            Clock.defaultClock());
         connector.setName("external");
-        connector.getSslContextFactory().setCertAlias(this.configuration.getKeyStoreAlias());
-        connector.getSslContextFactory().setKeyStorePath(this.configuration.getKeyStorePath());
-        connector.getSslContextFactory().setKeyStorePassword(this.configuration.getKeyStorePassword());
+
         return connector;
 	}
 

@@ -16,14 +16,15 @@ grails.project.dependency.resolution = {
     dependencies {
         compile "com.google.guava:guava:14.0.1",
                 "org.yaml:snakeyaml:1.12",
-                "com.yammer.metrics:metrics-core:2.2.0",
                 "org.slf4j:slf4j-api:1.7.4",
                 "org.slf4j:jul-to-slf4j:1.7.4",
                 "org.slf4j:log4j-over-slf4j:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"
 
-        compile("com.yammer.metrics:metrics-jetty:2.2.0",
-                "com.yammer.metrics:metrics-servlet:2.2.0") {
+        compile("com.codahale.metrics:metrics-core:3.0.0-RC1",
+                "com.codahale.metrics:metrics-jetty8:3.0.0-RC1",
+                "com.codahale.metrics:metrics-servlet:3.0.0-RC1",
+                "com.codahale.metrics:metrics-servlets:3.0.0-RC1") {
             exclude 'javax.servlet'
             exclude "jetty-server"
         }

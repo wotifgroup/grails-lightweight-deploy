@@ -5,7 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
-import com.yammer.metrics.core.Clock;
+import com.codahale.metrics.Clock;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -171,7 +171,7 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
             buf.append(" -");
         }
 
-        final long now = clock.time();
+        final long now = clock.getTime();
         final long dispatchTime = request.getDispatchTime();
 
         buf.append(' ');
