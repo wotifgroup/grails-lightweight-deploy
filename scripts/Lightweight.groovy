@@ -89,13 +89,18 @@ buildJar = { File workDir, File jar ->
 	}
 
 	jar.canonicalFile.parentFile.mkdirs()
+    String mainClass = resolveMainClass()
 	ant.jar(destfile: jar) {
 		fileset dir: workDir
+        //if they've specified a custom main class, include that
+        fileset(dir: classesDir) {
+            include name: "${mainClass.replaceAll('\\.','/')}.class"
+        }
         fileset(dir: pluginClassesDir) {
             include name: "grails/plugin/lightweight/**"
         }
 		manifest {
-			attribute name: 'Main-Class', value: resolveMainClass()
+			attribute name: 'Main-Class', value: mainClass
 		}
 	}
 

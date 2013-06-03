@@ -60,10 +60,7 @@ public class Launcher {
 	 * Start the server.
 	 */
 	public static void main(String[] args) throws IOException {
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
-        }
-
+        verifyArgs(args);
 		final Launcher launcher = new Launcher(args[0]);
 		launcher.start();
 	}
@@ -166,11 +163,15 @@ public class Launcher {
 
     protected Handler configureAdminContext() {
         final ServletContextHandler handler = new ServletContextHandler();
-        handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
+        configureInternalServlets(handler);
         handler.setConnectorNames(new String[]{INTERNAL_CONNECTOR_NAME});
         handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY,healthCheckRegistry);
         handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, metricsRegistry);
         return handler;
+    }
+
+    protected void configureInternalServlets(ServletContextHandler handler) {
+        handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
 	protected Handler createApplicationContext(String webappRoot) throws IOException {
@@ -193,8 +194,6 @@ public class Launcher {
                                                                                new JettyWebXmlConfiguration(),
                                                                                new TagLibConfiguration()});
 		context.setDefaultsDescriptor(webDefaults.getPath());
-
-		System.setProperty("TomcatKillSwitch.active", "true"); // workaround to prevent server exiting
 
         context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
 
@@ -288,4 +287,10 @@ public class Launcher {
 			}
 		});
 	}
+
+    protected static void verifyArgs(String[] args) {
+        if (args.length < 1) {
+            throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
+        }
+    }
 }
