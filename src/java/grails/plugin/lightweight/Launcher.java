@@ -237,12 +237,8 @@ public class Launcher {
         server.addConnector(connector);
     }
 
-	protected File getWorkDir() {
-		return new File(System.getProperty("java.io.tmpdir", ""));
-	}
-
 	protected File extractWar() throws IOException {
-		File dir = new File(getWorkDir(), "lightweight-war");
+		File dir = new File(this.configuration.getWorkDir(), "lightweight-war");
 		Utils.deleteDir(dir);
 		dir.mkdirs();
 		return extractWar(dir);
