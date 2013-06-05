@@ -28,6 +28,7 @@ public class Configuration {
     private FileLoggingConfiguration serverLogConfiguration;
     private boolean requestLoggingEnabled = false;
     private FileLoggingConfiguration requestLogConfiguration;
+    private File workDir;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -70,6 +71,7 @@ public class Configuration {
     protected void initLogging(Map<String, ?> config) {
         initRequestLogging(config);
         initServerLogging(config);
+        initWorkDir(config);
     }
 
     protected void initRequestLogging(Map<String, ?> config) {
@@ -101,6 +103,14 @@ public class Configuration {
                     this.serverLogConfiguration.setLoggingThreshold(Level.toLevel(fileConfig.get("threshold")));
                 }
             }
+        }
+    }
+
+    protected void initWorkDir(Map<String, ?> config) {
+        if (config.containsKey("workDir")) {
+            this.workDir = new File((String) config.get("workDir"));
+        } else {
+            this.workDir = new File(System.getProperty("java.io.tmpdir"));
         }
     }
 
@@ -150,6 +160,10 @@ public class Configuration {
 
     public FileLoggingConfiguration getRequestLogConfiguration() {
         return requestLogConfiguration;
+    }
+
+    public File getWorkDir() {
+        return workDir;
     }
 
     @Override

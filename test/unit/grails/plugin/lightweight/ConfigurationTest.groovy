@@ -111,7 +111,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void ifrequestLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+    public void ifRequestLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -148,7 +148,22 @@ public class ConfigurationTest {
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
         assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.requestLogConfiguration.timeZone)
-    }    
+    }
+
+    @Test
+    public void workDirShouldDefaultToTmpDir() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        Configuration configuration = new Configuration(config)
+        assertEquals(new File(System.getProperty("java.io.tmpdir")), configuration.getWorkDir())
+    }
+
+    @Test
+    public void workDirShouldBeConfigurable() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        config.workDir = "/apps/test"
+        Configuration configuration = new Configuration(config)
+        assertEquals(new File("/apps/test"), configuration.getWorkDir())
+    }
 
     protected Map<String, Map<String, Object>> defaultConfig() {
         [http: [port: 1234,
