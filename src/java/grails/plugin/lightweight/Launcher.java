@@ -197,8 +197,13 @@ public class Launcher {
 
         context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
 
+        configureExternalServlets(context);
+
 		return context;
 	}
+
+    protected void configureExternalServlets(WebAppContext context) {
+    }
 
 	protected AbstractConnector configureExternalHttpConnector() {
         InstrumentedSelectChannelConnector connector = new InstrumentedSelectChannelConnector(
