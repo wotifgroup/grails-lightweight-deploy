@@ -5,13 +5,44 @@ This plugin is intended to produce a lightweight, production-ready, deployable g
 the conventions from [Dropwizard](http://dropwizard.codahale.com) that make sense. This includes reading configuration from an externalised yml file,
 auto-instrumenting of controllers with codahale metrics and exposing a secondary port for the AdminServlet.
 
-##Quick Start
+##Getting Started
 Add the following to your BuildConfig:
 ```
 compile ":lightweight:0.4.0"
 ```
-This will then allow you to:
+ideally you should also replace the tomcat plugin with:
 ```
+build ':jetty:2.0.3'
+```
+for the sake of consistency.
+
+grails-lightweight uses logback for logging. This requires removing log4j usage from Grails by default. In order to do this, add the following to your global excludes in BuildConfig.groovy
+```
+excludes "log4j", "grails-plugin-log4j"
+```
+now create a logback.xml file in grails-app/conf:
+```
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <root level="info">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+```
+This file will only be used when running grails commands locally. When the server is actually running on Jetty, it will use the configuration from your yml file.
+Finally, due to a [long-standing bug](http://jira.grails.org/browse/GRAILS-3929) in Grails, you need to:
+```
+grails run-app
+```
+once to get the logback.xml copied to the correct location inside /.grails. Note that this first build will spam with DEBUG messages, but commands subsequent will be fine.
+
+Now you should be able to produce your executable jar file:
+```
+grails refresh-dependencies
 grails lightweight
 ```
 which will produce a jar file inside your target directory.
@@ -37,6 +68,63 @@ tail -f ./server.log
 ```
 and you should see your server starting up successfully.
 
+##Configuration
+Here's a complete sample configuration file, including comments describing the properties:
+```
+http:
+    #The port number that your grails application will be hosted on. By default this is http, however if the ssl block below is specified it will be https.
+    port: 8080
+    #A secondary port which will serve your administrative content. This should be firewalled off from external access. Check http://localhost:8048/ for what it provides.
+    adminPort: 8048
+    #If this block is specified, then the port will be over https
+    ssl:
+        #The path to the keystore which will be used to encrypt traffic over SSL on the port.
+        keyStore: /etc/pki/tls/jks/keystore.jks
+        #The alias inside the keystore which will be used.
+        certAlias: subdomain.domain.com
+        #The path to a plain-text file which stores the password for the keystore. This is ops-friendly externalisation, who can then use another automation framework to manage the passwords.
+        keyStorePasswordPath: /path/to/plain/text/file.txt
+        #Overrides keyStorePasswordPath if specified, this is the password for the keystore
+        keyStorePassword: password
+    #If specified, then an access log will be written.
+    requestLog:
+        file:
+            #The path to the file to write access log to.
+            currentLogFilename: ./server_access_log.txt
+
+logging:
+    file:
+        #The path to the file to write the server log to.
+        currentLogFilename: ./server.log
+        #The threshold over which log statements must be before being logged.
+        threshold: INFO
+
+#If specified, this directory will be used for temporary work files whilst the server is running. Defaults to java.io.tmpdir.
+workDir: ./work
+```
+
+##Customised Bootstrapping
+By default, the server will expose only the content in your grails application. It is possible to perform extra configuration of the Jetty server though. To do this, you need to write a custom Launcher. Here's a basic example:
+```
+package com.name;
+
+public class ApplicationLauncher extends grails.plugin.lightweight.Launcher {
+
+    public ApplicationLauncher(String configYmlPath) throws IOException {
+        super(configYmlPath);
+    }
+
+    public static void main(String[] args) throws IOException {
+        verifyArgs(args);
+		new ApplicationLauncher(args[0]).start();
+    }
+}
+```
+to get grails-lightweight to use this launcher, you then specify the following in your Config.groovy:
+```
+grails.plugin.lightweight.mainClass="com.name.ApplicationLauncher"
+```
+from there, you can perform any extra bootstrapping required.
 
 ## Command-Line Arguments
 By default, the artifact produced will have a name of the form: appName-appVersion-date (e.g. testapp-1.0-2013.01.01). This is
