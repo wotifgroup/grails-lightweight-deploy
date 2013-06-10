@@ -126,6 +126,24 @@ grails.plugin.lightweight.mainClass="com.name.ApplicationLauncher"
 ```
 from there, you can perform any extra bootstrapping required.
 
+###Extra configuration on the external or admin connectors
+It is possible, with a custom Launcher, to perform extra configuration on the external or admin connectors. To do so you need to override either of the following methods:
+```
+protected void configureExternalServlets(WebAppContext context);
+protected void configureInternalServlets(ServletContextHandler handler);
+```
+
+For example, to add an extra servlet to the external connector:
+```
+@Override
+protected void configureExternalServlets(WebAppContext context) {
+    super.configureExternalServlets(context);
+
+    context.addServlet(new ServletHolder(new MyCustomServlet()), "/custom/url");
+}
+```
+Be sure to still call super when overriding these methods for the default behaviour.
+
 ## Command-Line Arguments
 By default, the artifact produced will have a name of the form: appName-appVersion-date (e.g. testapp-1.0-2013.01.01). This is
 fairly friendly, informational default. It is, however possible to configure the name of the artifact produced from the command line.
