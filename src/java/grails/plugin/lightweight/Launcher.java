@@ -199,6 +199,8 @@ public class Launcher {
 
         configureExternalServlets(context);
 
+        context.setParentLoaderPriority(true);
+
 		return context;
 	}
 
