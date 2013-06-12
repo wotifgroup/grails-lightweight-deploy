@@ -1,4 +1,4 @@
-package grails.plugin.lightweight;
+package grails.plugin.lightweightdeploy;
 
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.MetricRegistry;
@@ -10,8 +10,8 @@ import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
 import com.google.common.io.ByteStreams;
-import grails.plugin.lightweight.logging.RequestLoggingFactory;
-import grails.plugin.lightweight.logging.ServerLoggingFactory;
+import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
+import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

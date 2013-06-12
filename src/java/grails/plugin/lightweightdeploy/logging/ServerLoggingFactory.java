@@ -1,9 +1,9 @@
-package grails.plugin.lightweight.logging;
+package grails.plugin.lightweightdeploy.logging;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.jmx.JMXConfigurator;
 import ch.qos.logback.classic.jul.LevelChangePropagator;
-import grails.plugin.lightweight.Configuration;
+import grails.plugin.lightweightdeploy.Configuration;
 import java.lang.management.ManagementFactory;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;

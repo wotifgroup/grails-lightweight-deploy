@@ -1,22 +1,22 @@
-class LightweightGrailsPlugin {
-    def version = "0.4.2"
+class LightweightDeployGrailsPlugin {
+    def version = "0.5.0"
     def grailsVersion = "2.0 > *"
 
-    def title = "Lightweight Plugin"
+    def title = "Lightweight Deploy Plugin"
     def description = '''\
 This plugin is intended to produce a lightweight, deployable grails application. It embeds jetty, and uses a number of
 the conventions from Dropwizard that make sense.
 This plugin uses some code from both the standalone plugin by Burt Beckwith and Dropwizard by Codahale.
 '''
 
-    def documentation = "https://github.com/aharwood/grails-lightweight/"
+    def documentation = "https://github.com/aharwood/grails-lightweight-deploy/"
 
     def license = "APACHE"
 
     def developers = [ [ name: "Adam Harwood", email: "adamtroyh@gmail.com" ]]
 
-    def issueManagement = [ system: "github", url: "https://github.com/aharwood/grails-lightweight" ]
+    def issueManagement = [ system: "github", url: "https://github.com/aharwood/grails-lightweight-deploy" ]
 
-    def scm = [ url: "https://github.com/aharwood/grails-lightweight/" ]
+    def scm = [ url: "https://github.com/aharwood/grails-lightweight-deploy/" ]
 
 }

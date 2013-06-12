@@ -1,10 +1,9 @@
-package grails.plugin.lightweight;
+package grails.plugin.lightweightdeploy;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 import com.google.common.io.Files;
-import grails.plugin.lightweight.logging.FileLoggingConfiguration;
+import grails.plugin.lightweightdeploy.logging.FileLoggingConfiguration;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;

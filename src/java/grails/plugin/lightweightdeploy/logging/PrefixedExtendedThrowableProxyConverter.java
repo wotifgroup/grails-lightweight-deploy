@@ -1,4 +1,4 @@
-package grails.plugin.lightweight.logging;
+package grails.plugin.lightweightdeploy.logging;
 
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.classic.spi.ThrowableProxyUtil;

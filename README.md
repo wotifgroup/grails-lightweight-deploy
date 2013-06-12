@@ -108,7 +108,7 @@ By default, the server will expose only the content in your grails application. 
 ```
 package com.name;
 
-public class ApplicationLauncher extends grails.plugin.lightweight.Launcher {
+public class ApplicationLauncher extends grails.plugin.lightweightdeploy.Launcher {
 
     public ApplicationLauncher(String configYmlPath) throws IOException {
         super(configYmlPath);
@@ -122,7 +122,7 @@ public class ApplicationLauncher extends grails.plugin.lightweight.Launcher {
 ```
 to get grails-lightweight to use this launcher, you then specify the following in your Config.groovy:
 ```
-grails.plugin.lightweight.mainClass="com.name.ApplicationLauncher"
+grails.plugin.lightweightdeploy.mainClass="com.name.ApplicationLauncher"
 ```
 from there, you can perform any extra bootstrapping required.
 

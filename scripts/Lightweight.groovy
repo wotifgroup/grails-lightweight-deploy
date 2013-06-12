@@ -171,10 +171,10 @@ resolveJars = { ->
 }
 
 String resolveMainClass() {
-    if (config.grails.plugin.lightweight.mainClass) {
-        config.grails.plugin.lightweight.mainClass
+    if (config.grails.plugin.lightweightdeploy.mainClass) {
+        config.grails.plugin.lightweightdeploy.mainClass
     } else {
-        'grails.plugin.lightweight.Launcher'
+        'grails.plugin.lightweightdeploy.Launcher'
     }
 }
 

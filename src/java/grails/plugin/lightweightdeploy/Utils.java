@@ -1,4 +1,4 @@
-package grails.plugin.lightweight;
+package grails.plugin.lightweightdeploy;
 
 import com.google.common.io.ByteStreams;
 import java.io.BufferedInputStream;

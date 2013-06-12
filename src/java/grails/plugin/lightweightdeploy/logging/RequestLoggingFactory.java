@@ -1,4 +1,4 @@
-package grails.plugin.lightweight.logging;
+package grails.plugin.lightweightdeploy.logging;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -6,7 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import com.codahale.metrics.Clock;
-import grails.plugin.lightweight.Configuration;
+import grails.plugin.lightweightdeploy.Configuration;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.slf4j.LoggerFactory;
