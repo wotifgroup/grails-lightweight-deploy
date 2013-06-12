@@ -32,9 +32,10 @@ target(lightweight: 'Build a lightweight app with embedded jetty') {
 
 		event 'StatusUpdate', ["Building lightweight jar $jar.path"]
 
+        File warExplodeDir = new File(workDir, "war")
 		if (argsMap.warfile) {
 			File warFile = new File(argsMap.warfile).absoluteFile
-            extractJar(warFile, workDir)
+            extractJar(warFile, warExplodeDir)
 			if (warFile.exists()) {
 				println "Using war file $argsMap.warfile"
                 if (!buildJar(workDir, jar)) {
@@ -47,7 +48,7 @@ target(lightweight: 'Build a lightweight app with embedded jetty') {
 		}
 		else {
 			File warFile = buildWar(workDir)
-            extractJar(warFile, workDir)
+            extractJar(warFile, warExplodeDir)
             warFile.delete()
             if (!buildJar(workDir, jar)) {
                 return

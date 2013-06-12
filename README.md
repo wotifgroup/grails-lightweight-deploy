@@ -8,7 +8,7 @@ auto-instrumenting of controllers with codahale metrics and exposing a secondary
 ##Getting Started
 Add the following to your BuildConfig:
 ```
-compile ":lightweight-deploy:0.5.2"
+compile ":lightweight-deploy:0.5.3"
 ```
 ideally you should also replace the tomcat plugin with:
 ```

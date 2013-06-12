@@ -51,6 +51,10 @@ public class Launcher {
 
     private static final String EXTERNAL_CONNECTOR_NAME = "external";
     private static final String INTERNAL_CONNECTOR_NAME = "internal";
+    /**
+     * The directory under the exploded dir which stores the war
+     */
+    private static final String WAR_EXPLODED_SUBDIR = "war";
 
 	private Configuration configuration;
     private MetricRegistry metricsRegistry;
@@ -129,7 +133,7 @@ public class Launcher {
 		    addConnector(server, configureExternalHttpConnector());
         }
 
-        return createApplicationContext(exploded.getPath());
+        return createApplicationContext(exploded.getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
 
     protected Handler configureInternal(Server server) {
@@ -180,17 +184,11 @@ public class Launcher {
 
 		WebAppContext context = new WebAppContext(webappRoot, "/");
 
-		System.setProperty("java.naming.factory.url.pkgs", "org.eclipse.jetty.jndi");
-		System.setProperty("java.naming.factory.initial", "org.eclipse.jetty.jndi.InitialContextFactory");
-
         context.addFilter(DefaultWebappMetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
         context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
                                                                                new WebXmlConfiguration(),
                                                                                new MetaInfConfiguration(),
-                                                                               new FragmentConfiguration(),
-                                                                               new EnvConfiguration(),
-                                                                               new PlusConfiguration(),
                                                                                new JettyWebXmlConfiguration(),
                                                                                new TagLibConfiguration()});
 		context.setDefaultsDescriptor(webDefaults.getPath());
@@ -199,11 +197,15 @@ public class Launcher {
 
         configureExternalServlets(context);
 
+        //ensure the logback settings we've already configured are re-used in the app.
         context.setParentLoaderPriority(true);
 
 		return context;
 	}
 
+    /**
+     * Override point for subclasses
+     */
     protected void configureExternalServlets(WebAppContext context) {
     }
 
