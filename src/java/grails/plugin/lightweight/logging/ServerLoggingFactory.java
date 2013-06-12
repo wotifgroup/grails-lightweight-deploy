@@ -62,7 +62,7 @@ public class ServerLoggingFactory {
 
         root.getLoggerContext().addListener(propagator);
 
-        root.setLevel(config.getBaseLoggingThreshold());
+        root.setLevel(config.getServerLogConfiguration().getThreshold());
 
         return root;
     }

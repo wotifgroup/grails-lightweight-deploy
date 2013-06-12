@@ -23,7 +23,6 @@ public class Configuration {
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
-    private Level baseLoggingThreshold = Level.INFO;
     private boolean serverLoggingEnabled = false;
     private FileLoggingConfiguration serverLogConfiguration;
     private boolean requestLoggingEnabled = false;
@@ -112,10 +111,6 @@ public class Configuration {
         } else {
             this.workDir = new File(System.getProperty("java.io.tmpdir"));
         }
-    }
-
-    public Level getBaseLoggingThreshold() {
-        return baseLoggingThreshold;
     }
 
     public Integer getPort() {

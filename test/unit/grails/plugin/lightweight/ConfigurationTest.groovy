@@ -47,13 +47,6 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void baseThresholdShouldBeInfo() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig()
-        Configuration configuration = new Configuration(config)
-        assertEquals(Level.INFO, configuration.getBaseLoggingThreshold())
-    }
-
-    @Test
     public void serverLoggingThresholdShouldDefaultToInfo() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         attachServerLoggingConfig(config).file.remove("threshold")
