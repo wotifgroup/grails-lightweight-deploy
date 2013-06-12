@@ -34,7 +34,7 @@ public class ServerLoggingFactory {
 
         final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
         try {
-            final ObjectName objectName = new ObjectName("com.yammer:type=Logging");
+            final ObjectName objectName = new ObjectName("grails.plugin.lightweight:type=Logging");
             if (!server.isRegistered(objectName)) {
                 server.registerMBean(new JMXConfigurator(root.getLoggerContext(),
                                                          server,
