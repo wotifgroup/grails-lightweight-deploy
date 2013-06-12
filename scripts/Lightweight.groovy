@@ -79,7 +79,7 @@ buildWar = { File workDir ->
 
 buildJar = { File workDir, File jar ->
     File webDefaults = new File(workDir, 'webdefault.xml')
-    File pluginDir = new PluginBuildSettings(buildSettings).getPluginDirForName('lightweight').file
+    File pluginDir = new PluginBuildSettings(buildSettings).getPluginDirForName('lightweight-deploy').file
     FileCopyUtils.copy new File(pluginDir, 'grails-app/conf/webdefault.xml'), webDefaults
 
 	for (jarPath in resolveJars()) {
@@ -97,7 +97,7 @@ buildJar = { File workDir, File jar ->
             include name: "${mainClass.replaceAll('\\.','/')}.class"
         }
         fileset(dir: pluginClassesDir) {
-            include name: "grails/plugin/lightweight/**"
+            include name: "grails/plugin/lightweight-deploy/**"
         }
 		manifest {
 			attribute name: 'Main-Class', value: mainClass
@@ -142,7 +142,7 @@ resolveJars = { ->
 		deps.addAll config.extraDependencies
 	}
 
-	def manager = new IvyDependencyManager('lightweight', '0.1', new BuildSettings())
+	def manager = new IvyDependencyManager('lightweight-deploy', '0.1', new BuildSettings())
 	manager.parseDependencies {
 		repositories {
 			mavenLocal()
