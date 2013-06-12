@@ -8,7 +8,7 @@ auto-instrumenting of controllers with codahale metrics and exposing a secondary
 ##Getting Started
 Add the following to your BuildConfig:
 ```
-compile ":lightweight:0.4.0"
+compile ":lightweight-deploy:0.5.0"
 ```
 ideally you should also replace the tomcat plugin with:
 ```
@@ -16,7 +16,7 @@ build ':jetty:2.0.3'
 ```
 for the sake of consistency.
 
-grails-lightweight uses logback for logging. This requires removing log4j usage from Grails by default. In order to do this, add the following to your global excludes in BuildConfig.groovy
+grails-lightweight-deploy uses logback for logging. This requires removing log4j usage from Grails by default. In order to do this, add the following to your global excludes in BuildConfig.groovy
 ```
 excludes "log4j", "grails-plugin-log4j"
 ```
@@ -120,7 +120,7 @@ public class ApplicationLauncher extends grails.plugin.lightweightdeploy.Launche
     }
 }
 ```
-to get grails-lightweight to use this launcher, you then specify the following in your Config.groovy:
+to get grails-lightweight-deploy to use this launcher, you then specify the following in your Config.groovy:
 ```
 grails.plugin.lightweightdeploy.mainClass="com.name.ApplicationLauncher"
 ```
