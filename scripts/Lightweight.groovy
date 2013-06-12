@@ -97,7 +97,7 @@ buildJar = { File workDir, File jar ->
             include name: "${mainClass.replaceAll('\\.','/')}.class"
         }
         fileset(dir: pluginClassesDir) {
-            include name: "grails/plugin/lightweight-deploy/**"
+            include name: "grails/plugin/lightweightdeploy/**"
         }
 		manifest {
 			attribute name: 'Main-Class', value: mainClass
@@ -137,7 +137,7 @@ resolveJars = { ->
                 "org.slf4j:jul-to-slf4j:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"]
 
-    def config = config.grails.plugin.lightweight
+    def config = config.grails.plugin.lightweightdeploy
 	if (config.extraDependencies instanceof Collection) {
 		deps.addAll config.extraDependencies
 	}
