@@ -49,6 +49,9 @@ import org.slf4j.LoggerFactory;
 public class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
+    public static final String METRICS_REGISTRY_SERVLET_ATTRIBUTE = "metricsRegistry";
+    public static final String HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE = "healthCheckRegistry";
+
     private static final String EXTERNAL_CONNECTOR_NAME = "external";
     private static final String INTERNAL_CONNECTOR_NAME = "internal";
     /**
@@ -184,6 +187,9 @@ public class Launcher {
 
 		WebAppContext context = new WebAppContext(webappRoot, "/");
 
+        context.setAttribute(METRICS_REGISTRY_SERVLET_ATTRIBUTE, this.metricsRegistry);
+        context.setAttribute(HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE, this.healthCheckRegistry);
+
         context.addFilter(DefaultWebappMetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
         context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
@@ -195,10 +201,10 @@ public class Launcher {
 
         context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
 
-        configureExternalServlets(context);
-
         //ensure the logback settings we've already configured are re-used in the app.
         context.setParentLoaderPriority(true);
+
+        configureExternalServlets(context);
 
 		return context;
 	}
