@@ -1,4 +1,4 @@
-package grails.plugin.lightweight
+package grails.plugin.lightweightdeploy
 
 import ch.qos.logback.classic.Level
 import org.junit.Test
