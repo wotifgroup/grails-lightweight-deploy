@@ -158,5 +158,9 @@ grails prod lightweight --release=123
 Which would produce a name of the form appName-appVersion-date_123. This can be useful to set to the build number from your CI
 server, to make tracking of the build into production easier.
 
+##Metrics
+lightweight-deploy automatically instruments all controller methods with (Codahale Metrics)[http://metrics.codahale.com/]. Each Timer is created dynamically
+as requests come in, named as "controllerName.actionName". The metrics are viewable at "http://server:adminPort/metrics".
+
 ##Credit
 This plugin uses some code from both the [standalone](http://grails.org/plugin/standalone) plugin by Burt Beckwith and [Dropwizard](http://dropwizard.codahale.com) by Codahale.
