@@ -23,10 +23,10 @@ grails.project.dependency.resolution = {
                 "org.slf4j:log4j-over-slf4j:1.7.5",
                 "org.slf4j:jcl-over-slf4j:1.7.5"
 
-        compile("com.codahale.metrics:metrics-core:3.0.0-RC1",
-                "com.codahale.metrics:metrics-jetty8:3.0.0-RC1",
-                "com.codahale.metrics:metrics-servlet:3.0.0-RC1",
-                "com.codahale.metrics:metrics-servlets:3.0.0-RC1") {
+        compile("com.codahale.metrics:metrics-core:3.0.0",
+                "com.codahale.metrics:metrics-jetty8:3.0.0",
+                "com.codahale.metrics:metrics-servlet:3.0.0",
+                "com.codahale.metrics:metrics-servlets:3.0.0") {
             exclude 'javax.servlet'
             exclude "jetty-server"
         }
