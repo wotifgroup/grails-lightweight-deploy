@@ -22,8 +22,6 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.servlet.DispatcherType;
-import org.eclipse.jetty.plus.webapp.EnvConfiguration;
-import org.eclipse.jetty.plus.webapp.PlusConfiguration;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -33,7 +31,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.FragmentConfiguration;
 import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.webapp.TagLibConfiguration;
@@ -73,15 +70,18 @@ public class Launcher {
 	}
 
 	public Launcher(String configYmlPath) throws IOException {
+        this(new Configuration(configYmlPath));
+	}
+
+    public Launcher(Configuration configuration) {
+        this.configuration = configuration;
+        logger.info("Using configuration: " + this.configuration);
+
         this.metricsRegistry = new MetricRegistry();
         this.healthCheckRegistry = new HealthCheckRegistry();
 
-        logger.info("Reading config from: " + configYmlPath);
-		this.configuration = new Configuration(configYmlPath);
-        logger.info("Using configuration: " + this.configuration);
-
         configureLogging();
-	}
+    }
 
     protected void configureLogging() {
         if (this.configuration.isServerLoggingEnabled()) {
