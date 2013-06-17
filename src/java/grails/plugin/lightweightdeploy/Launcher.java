@@ -83,6 +83,18 @@ public class Launcher {
         configureLogging();
     }
 
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public HealthCheckRegistry getHealthCheckRegistry() {
+        return healthCheckRegistry;
+    }
+
+    public MetricRegistry getMetricsRegistry() {
+        return metricsRegistry;
+    }
+
     protected void configureLogging() {
         if (this.configuration.isServerLoggingEnabled()) {
             ServerLoggingFactory loggingFactory = new ServerLoggingFactory(this.configuration);
