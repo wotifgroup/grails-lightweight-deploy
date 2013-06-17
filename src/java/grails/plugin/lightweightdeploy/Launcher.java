@@ -5,7 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector;
 import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
-import com.codahale.metrics.servlet.DefaultWebappMetricsFilter;
+import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
@@ -202,7 +202,8 @@ public class Launcher {
         context.setAttribute(METRICS_REGISTRY_SERVLET_ATTRIBUTE, this.metricsRegistry);
         context.setAttribute(HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE, this.healthCheckRegistry);
 
-        context.addFilter(DefaultWebappMetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+        context.setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, this.metricsRegistry);
+        context.addFilter(InstrumentedFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
         context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
                                                                                new WebXmlConfiguration(),
