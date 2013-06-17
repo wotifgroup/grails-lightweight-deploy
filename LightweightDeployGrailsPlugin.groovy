@@ -1,5 +1,5 @@
 class LightweightDeployGrailsPlugin {
-    def version = "0.6.1"
+    def version = "0.6.2"
     def grailsVersion = "2.0 > *"
 
     def title = "Lightweight Deploy Plugin"
