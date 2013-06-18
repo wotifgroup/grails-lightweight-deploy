@@ -10,14 +10,10 @@ import com.google.common.io.ByteStreams;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import javax.servlet.DispatcherType;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
@@ -99,12 +95,12 @@ public class Launcher {
     }
 
 	protected void start() throws IOException {
-		final File exploded = extractWar();
-		deleteExplodedOnShutdown(exploded);
+        War war = new War(this.configuration.getWorkDir());
+		deleteExplodedOnShutdown(war);
 
 		System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
 
-		Server server = configureJetty(exploded);
+		Server server = configureJetty(war);
 
 		startJetty(server);
 	}
@@ -118,11 +114,11 @@ public class Launcher {
 		return temp;
 	}
 
-	protected Server configureJetty(File exploded) throws IOException {
+	protected Server configureJetty(War war) throws IOException {
         Server server = new Server();
 
         HandlerCollection handlerCollection = new HandlerCollection();
-        handlerCollection.addHandler(configureExternal(server, exploded));
+        handlerCollection.addHandler(configureExternal(server, war));
         if (this.configuration.hasAdminPort()) {
             handlerCollection.addHandler(configureInternal(server));
         }
@@ -135,14 +131,14 @@ public class Launcher {
         return server;
 	}
 
-    protected Handler configureExternal(Server server, File exploded) throws IOException {
+    protected Handler configureExternal(Server server, War war) throws IOException {
         ExternalConnectorFactory externalConnectorFactory = new ExternalConnectorFactory(this.configuration,
                                                                                          this.healthCheckRegistry,
                                                                                          this.metricsRegistry);
         AbstractConnector externalConnector = externalConnectorFactory.build();
         server.addConnector(externalConnector);
 
-        return createApplicationContext(exploded.getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createApplicationContext(war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
 
     protected Handler configureInternal(Server server) {
@@ -233,49 +229,12 @@ public class Launcher {
         server.addConnector(connector);
     }
 
-	protected File extractWar() throws IOException {
-		File dir = new File(this.configuration.getWorkDir(), "lightweight-war");
-		Utils.deleteDir(dir);
-		dir.mkdirs();
-		return extractWar(dir);
-	}
-
-	protected File extractWar(File dir) throws IOException {
-        String filePath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        logger.info("Exploding jar at: " + filePath);
-        FileInputStream fileInputStream = new FileInputStream(new File(filePath));
-		return extractWar(fileInputStream, File.createTempFile("embedded", ".war", dir).getAbsoluteFile());
-	}
-
-	protected File extractWar(InputStream embeddedWarfile, File destinationWarfile) throws IOException {
-		destinationWarfile.getParentFile().mkdirs();
-		destinationWarfile.deleteOnExit();
-		ByteStreams.copy(embeddedWarfile, new FileOutputStream(destinationWarfile));
-		return explode(destinationWarfile);
-	}
-
-	protected File explode(File war) throws IOException {
-		String basename = war.getName();
-		int index = basename.lastIndexOf('.');
-		if (index > -1) {
-			basename = basename.substring(0, index);
-		}
-		File explodedDir = new File(war.getParentFile(), basename + "-exploded-" + System.currentTimeMillis());
-
-		ZipFile zipfile = new ZipFile(war);
-		for (Enumeration<? extends ZipEntry> e = zipfile.entries(); e.hasMoreElements(); ) {
-			Utils.unzip(e.nextElement(), zipfile, explodedDir);
-		}
-		zipfile.close();
-
-		return explodedDir;
-	}
-
-	protected void deleteExplodedOnShutdown(final File exploded) {
+	protected void deleteExplodedOnShutdown(War war) {
+        final File warDirectory = war.getDirectory();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				Utils.deleteDir(exploded);
+				Utils.deleteDir(warDirectory);
 			}
 		});
 	}
