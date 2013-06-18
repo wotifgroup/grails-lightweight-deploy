@@ -126,6 +126,17 @@ grails.plugin.lightweightdeploy.mainClass="com.name.ApplicationLauncher"
 ```
 from there, you can perform any extra bootstrapping required.
 
+If your bootstrapping relies on some extra dependencies, you can use the following:
+```
+grails.plugin.lightweightdeploy.extraDependencies = ["group:artifact:version", ...]
+```
+These jars will then be exploded into the bootstrapping portion of your runnable jar.
+
+You can also include specific classes or directories of classes from your application into the bootstrapping portion of the runnable jar:
+```
+grails.plugin.lightweightdeploy.extraClasses = ["**/Awesome.class", "**/util/**"]
+```
+
 ###Extra configuration on the external or admin connectors
 It is possible, with a custom Launcher, to perform extra configuration on the external or admin connectors. To do so you need to override either of the following methods:
 ```

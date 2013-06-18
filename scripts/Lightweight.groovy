@@ -96,6 +96,9 @@ buildJar = { File workDir, File jar ->
         //if they've specified a custom main class, include that
         fileset(dir: classesDir) {
             include name: "${mainClass.replaceAll('\\.','/')}.class"
+            config.grails.plugin.lightweightdeploy.extraClasses.each {
+                include name: it
+            }
         }
         fileset(dir: pluginClassesDir) {
             include name: "grails/plugin/lightweightdeploy/**"
