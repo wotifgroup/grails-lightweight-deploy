@@ -5,6 +5,7 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
+import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import java.io.IOException;
@@ -100,6 +101,11 @@ public class Launcher {
             handlerCollection.addHandler(requestLoggingFactory.configure());
         }
         server.setHandler(handlerCollection);
+
+        if (this.configuration.isJmxEnabled()) {
+            JmxServer jmxServer = new JmxServer(this.configuration.getJmxConfiguration());
+            jmxServer.start();
+        }
 
         return server;
 	}

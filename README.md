@@ -99,6 +99,11 @@ logging:
         #The threshold over which log statements must be before being logged.
         threshold: INFO
 
+#If this block is present, then a jmx server will be started on the given ports. Both are required.
+jmx:
+    serverPort: 10000
+    registryPort: 10001
+
 #If specified, this directory will be used for temporary work files whilst the server is running. Defaults to java.io.tmpdir.
 workDir: ./work
 ```

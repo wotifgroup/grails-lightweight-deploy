@@ -3,6 +3,7 @@ package grails.plugin.lightweightdeploy;
 import ch.qos.logback.classic.Level;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
 import grails.plugin.lightweightdeploy.logging.FileLoggingConfiguration;
 import java.io.File;
 import java.io.FileReader;
@@ -22,11 +23,10 @@ public class Configuration {
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
-    private boolean serverLoggingEnabled = false;
     private FileLoggingConfiguration serverLogConfiguration;
-    private boolean requestLoggingEnabled = false;
     private FileLoggingConfiguration requestLogConfiguration;
     private File workDir;
+    private JmxConfiguration jmxConfiguration;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -40,6 +40,7 @@ public class Configuration {
     protected void init(Map<String, ?> config) throws IOException {
         initHttp(config);
         initLogging(config);
+        initJmx(config);
     }
 
     protected void initHttp(Map<String, ?> config) throws IOException {
@@ -66,6 +67,18 @@ public class Configuration {
         }
     }
 
+    protected void initJmx(Map<String, ?> config) {
+        if (config.containsKey("jmx")) {
+            Map<String, ?> jmxConfig = (Map<String, ?>) config.get("jmx");
+            Integer registryPort = (Integer) jmxConfig.get("registryPort");
+            Integer serverPort = (Integer) jmxConfig.get("serverPort");
+            if (registryPort == null || serverPort == null) {
+                throw new IllegalArgumentException("Both server and registry port must be present for jmx");
+            }
+            this.jmxConfiguration = new JmxConfiguration(registryPort, serverPort);
+        }
+    }
+
     protected void initLogging(Map<String, ?> config) {
         initRequestLogging(config);
         initServerLogging(config);
@@ -76,7 +89,6 @@ public class Configuration {
         Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
         if (httpConfig.containsKey("requestLog")) {
             Map<String, String> loggingConfig = (Map<String, String>) ((Map<String, ?>) httpConfig.get("requestLog")).get("file");
-            this.requestLoggingEnabled = true;
             this.requestLogConfiguration = new FileLoggingConfiguration(loggingConfig.get("currentLogFilename"));
             if (loggingConfig.containsKey("timeZone")) {
                 this.requestLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(loggingConfig.get("timeZone")));
@@ -91,7 +103,6 @@ public class Configuration {
         if (config.containsKey("logging")) {
             Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
             if (loggingConfig.containsKey("file")) {
-                this.serverLoggingEnabled = true;
                 Map<String, String> fileConfig = (Map<String, String>) loggingConfig.get("file");
                 this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig.get("currentLogFilename"));
                 if (fileConfig.containsKey("timeZone")) {
@@ -120,16 +131,24 @@ public class Configuration {
         return adminPort;
     }
 
+    public JmxConfiguration getJmxConfiguration() {
+        return jmxConfiguration;
+    }
+
     public boolean hasAdminPort() {
         return getAdminPort() != null;
     }
 
+    public boolean isJmxEnabled() {
+        return (this.jmxConfiguration != null);
+    }
+
     public boolean isRequestLoggingEnabled() {
-        return requestLoggingEnabled;
+        return (this.requestLogConfiguration != null);
     }
 
     public boolean isServerLoggingEnabled() {
-        return this.serverLoggingEnabled;
+        return (this.serverLogConfiguration != null);
     }
 
     public boolean isSsl() {

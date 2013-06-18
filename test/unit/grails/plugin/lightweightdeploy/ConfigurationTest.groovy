@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue
 public class ConfigurationTest {
 
     @Test
-    public void shouldAssumeHttpIfNoSslBlock() throws IOException {
+    void shouldAssumeHttpIfNoSslBlock() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         config.http.remove("ssl")
         Configuration configuration = new Configuration(config)
@@ -18,7 +18,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void shouldAssumeHttpsIfSslBlock() throws IOException {
+    void shouldAssumeHttpsIfSslBlock() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
         assertEquals(1234, configuration.getPort().intValue())
@@ -26,28 +26,28 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void shouldSetKeystoreAliasFromConfig() throws IOException {
+    void shouldSetKeystoreAliasFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
         assertEquals("app.domain.com", configuration.getKeyStoreAlias())
     }
 
     @Test
-    public void shouldSetKeystorePathFromConfig() throws IOException {
+    void shouldSetKeystorePathFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
         assertEquals("/etc/pki/tls/jks/test.jks", configuration.getKeyStorePath())
     }
 
     @Test
-    public void shouldSetKeystorePasswordFromConfig() throws IOException {
+    void shouldSetKeystorePasswordFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
         assertEquals("password", configuration.getKeyStorePassword())
     }
 
     @Test
-    public void serverLoggingThresholdShouldDefaultToInfo() throws IOException {
+    void serverLoggingThresholdShouldDefaultToInfo() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         attachServerLoggingConfig(config).file.remove("threshold")
         Configuration configuration = new Configuration(config)
@@ -55,7 +55,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void ifServerLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+    void ifServerLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachServerLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -63,7 +63,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void serverloggingThresholdShouldBeSetToValueInFile() throws IOException {
+    void serverloggingThresholdShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachServerLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -71,7 +71,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void serverLoggingFileShouldBeSetToValueInFile() throws IOException {
+    void serverLoggingFileShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachServerLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -79,7 +79,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void serverLoggingTimezoneShouldDefaultToLocal() throws IOException {
+    void serverLoggingTimezoneShouldDefaultToLocal() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachServerLoggingConfig(config)
         config.logging.file.remove("timeZone")
@@ -88,7 +88,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void serverLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+    void serverLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachServerLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -96,7 +96,7 @@ public class ConfigurationTest {
     }
     
     @Test
-    public void requestLoggingThresholdShouldDefaultToInfo() throws IOException {
+    void requestLoggingThresholdShouldDefaultToInfo() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         attachRequestLoggingConfig(config).file.remove("threshold")
         Configuration configuration = new Configuration(config)
@@ -104,7 +104,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void ifRequestLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+    void ifRequestLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -112,7 +112,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void requestloggingThresholdShouldBeSetToValueInFile() throws IOException {
+    void requestloggingThresholdShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -120,7 +120,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void requestLoggingFileShouldBeSetToValueInFile() throws IOException {
+    void requestLoggingFileShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -128,7 +128,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void requestLoggingTimezoneShouldDefaultToLocal() throws IOException {
+    void requestLoggingTimezoneShouldDefaultToLocal() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config).file.remove("timeZone")
         Configuration configuration = new Configuration(config)
@@ -136,7 +136,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void requestLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+    void requestLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
@@ -144,18 +144,54 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void workDirShouldDefaultToTmpDir() throws IOException {
+    void workDirShouldDefaultToTmpDir() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
         assertEquals(new File(System.getProperty("java.io.tmpdir")), configuration.getWorkDir())
     }
 
     @Test
-    public void workDirShouldBeConfigurable() throws IOException {
+    void workDirShouldBeConfigurable() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         config.workDir = "/apps/test"
         Configuration configuration = new Configuration(config)
         assertEquals(new File("/apps/test"), configuration.getWorkDir())
+    }
+    
+    @Test
+    void jmxShouldBeDisabledIfConfigOmitted() {
+        Map<String, ? extends Object> config = defaultConfig()
+        assertFalse(new Configuration(config).isJmxEnabled())
+    }
+
+    @Test
+    void jmxShouldBeEnabledIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachJmxConfig(config)
+        assertTrue(new Configuration(config).isJmxEnabled())
+    }
+
+    @Test
+    void jmxPortsShouldBeSetIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachJmxConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(1234, configuration.jmxConfiguration.serverPort)
+        assertEquals(2345, configuration.jmxConfiguration.registryPort)
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void serverPortMustBePresentForJmx() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachJmxConfig(config).remove("serverPort")
+        new Configuration(config)
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void registryPortMustBePresentForJmx() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachJmxConfig(config).remove("registryPort")
+        new Configuration(config)
     }
 
     protected Map<String, Map<String, Object>> defaultConfig() {
@@ -163,6 +199,12 @@ public class ConfigurationTest {
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
                       keyStorePassword: "password",
                       certAlias: "app.domain.com"]]]
+    }
+
+    protected def attachJmxConfig(def config) {
+        config.jmx = [serverPort: 1234,
+                      registryPort: 2345]
+        config.jmx
     }
 
     protected def attachRequestLoggingConfig(def config) {
