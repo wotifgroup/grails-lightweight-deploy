@@ -3,8 +3,6 @@ package grails.plugin.lightweightdeploy;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
-import com.codahale.metrics.servlets.HealthCheckServlet;
-import com.codahale.metrics.servlets.MetricsServlet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
@@ -82,14 +80,14 @@ public class Launcher {
 	protected void start() throws IOException {
         War war = new War(this.configuration.getWorkDir());
 
-		System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
-
 		Server server = configureJetty(war);
 
 		startJetty(server);
 	}
 
 	protected Server configureJetty(War war) throws IOException {
+        System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
+
         Server server = new Server();
 
         HandlerCollection handlerCollection = new HandlerCollection();
@@ -116,7 +114,7 @@ public class Launcher {
         externalConnector.setName(EXTERNAL_CONNECTOR_NAME);
         server.addConnector(externalConnector);
 
-        return createApplicationContext(war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createExternalContext(war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
 
     protected Handler configureInternal(Server server) {
@@ -127,7 +125,7 @@ public class Launcher {
         connector.setName(INTERNAL_CONNECTOR_NAME);
         server.addConnector(connector);
 
-        return configureAdminContext();
+        return createInternalContext();
     }
 
 	protected void startJetty(Server server) {
@@ -141,12 +139,10 @@ public class Launcher {
 		}
 	}
 
-    protected Handler configureAdminContext() {
-        final ServletContextHandler handler = new ServletContextHandler();
-        configureInternalServlets(handler);
+    protected Handler createInternalContext() {
+        final ServletContextHandler handler = new InternalContext(getHealthCheckRegistry(), getMetricsRegistry());
         handler.setConnectorNames(new String[]{INTERNAL_CONNECTOR_NAME});
-        handler.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY,healthCheckRegistry);
-        handler.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, metricsRegistry);
+        configureInternalServlets(handler);
         return handler;
     }
 
@@ -154,7 +150,7 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-	protected Handler createApplicationContext(String webAppRoot) throws IOException {
+	protected Handler createExternalContext(String webAppRoot) throws IOException {
 		WebAppContext context = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
 
         //bind this context to the external connector
