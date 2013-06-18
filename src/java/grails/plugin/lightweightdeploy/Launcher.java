@@ -1,10 +1,7 @@
 package grails.plugin.lightweightdeploy;
 
-import com.codahale.metrics.Clock;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector;
-import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
@@ -29,7 +26,6 @@ import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
@@ -140,13 +136,11 @@ public class Launcher {
 	}
 
     protected Handler configureExternal(Server server, File exploded) throws IOException {
-		if (this.configuration.isSsl()) {
-            logger.info("Creating https connector");
-			addConnector(server, configureExternalHttpsConnector());
-		} else {
-            logger.info("Creating http connector");
-		    addConnector(server, configureExternalHttpConnector());
-        }
+        ExternalConnectorFactory externalConnectorFactory = new ExternalConnectorFactory(this.configuration,
+                                                                                         this.healthCheckRegistry,
+                                                                                         this.metricsRegistry);
+        AbstractConnector externalConnector = externalConnectorFactory.build();
+        server.addConnector(externalConnector);
 
         return createApplicationContext(exploded.getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
@@ -227,32 +221,6 @@ public class Launcher {
      */
     protected void configureExternalServlets(WebAppContext context) {
     }
-
-	protected AbstractConnector configureExternalHttpConnector() {
-        InstrumentedSelectChannelConnector connector = new InstrumentedSelectChannelConnector(
-            this.metricsRegistry,
-            this.configuration.getPort(),
-            Clock.defaultClock());
-        connector.setName("external");
-        connector.setUseDirectBuffers(true);
-        return connector;
-	}
-
-	protected AbstractConnector configureExternalHttpsConnector() {
-        SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setCertAlias(this.configuration.getKeyStoreAlias());
-        sslContextFactory.setKeyStorePath(this.configuration.getKeyStorePath());
-        sslContextFactory.setKeyStorePassword(this.configuration.getKeyStorePassword());
-
-        InstrumentedSslSocketConnector connector = new InstrumentedSslSocketConnector(
-            this.metricsRegistry,
-            this.configuration.getPort(),
-            sslContextFactory,
-            Clock.defaultClock());
-        connector.setName("external");
-
-        return connector;
-	}
 
     protected void addConnector(Server server, AbstractConnector connector) {
         connector.setMaxIdleTime(200 * 1000);
