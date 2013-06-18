@@ -5,18 +5,17 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
+import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
+import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
-import java.io.File;
 import java.io.IOException;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +81,6 @@ public class Launcher {
 
 	protected void start() throws IOException {
         War war = new War(this.configuration.getWorkDir());
-		deleteExplodedOnShutdown(war);
 
 		System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
 
@@ -109,10 +107,13 @@ public class Launcher {
 	}
 
     protected Handler configureExternal(Server server, War war) throws IOException {
+        logger.info("Configuring external connector");
+
         ExternalConnectorFactory externalConnectorFactory = new ExternalConnectorFactory(this.configuration,
                                                                                          this.healthCheckRegistry,
                                                                                          this.metricsRegistry);
         AbstractConnector externalConnector = externalConnectorFactory.build();
+        externalConnector.setName(EXTERNAL_CONNECTOR_NAME);
         server.addConnector(externalConnector);
 
         return createApplicationContext(war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
@@ -121,18 +122,12 @@ public class Launcher {
     protected Handler configureInternal(Server server) {
         logger.info("Configuring admin connector");
 
-        addConnector(server, configureInternalConnector());
+        InternalConnectorFactory internalConnectorFactory = new InternalConnectorFactory(getConfiguration());
+        AbstractConnector connector = internalConnectorFactory.build();
+        connector.setName(INTERNAL_CONNECTOR_NAME);
+        server.addConnector(connector);
 
         return configureAdminContext();
-    }
-
-    protected AbstractConnector configureInternalConnector() {
-        final SocketConnector connector = new SocketConnector();
-        connector.setPort(this.configuration.getAdminPort());
-        connector.setName("internal");
-        connector.setThreadPool(new QueuedThreadPool(8));
-        connector.setName(INTERNAL_CONNECTOR_NAME);
-        return connector;
     }
 
 	protected void startJetty(Server server) {
@@ -141,8 +136,7 @@ public class Launcher {
 			logger.info("Startup complete. Server running on " + this.configuration.getPort());
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			System.err.println("Error loading Jetty: " + e.getMessage());
+            logger.error("Error starting jetty. Exiting JVM.", e);
 			System.exit(1);
 		}
 	}
@@ -176,27 +170,6 @@ public class Launcher {
      */
     protected void configureExternalServlets(WebAppContext context) {
     }
-
-    protected void addConnector(Server server, AbstractConnector connector) {
-        connector.setMaxIdleTime(200 * 1000);
-        connector.setLowResourcesMaxIdleTime(0);
-        connector.setRequestBufferSize(16 * 1024);
-        connector.setRequestHeaderSize(6 * 1024);
-        connector.setResponseBufferSize(32 * 1024);
-        connector.setResponseHeaderSize(6 * 1024);
-
-        server.addConnector(connector);
-    }
-
-	protected void deleteExplodedOnShutdown(War war) {
-        final File warDirectory = war.getDirectory();
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				Utils.deleteDir(warDirectory);
-			}
-		});
-	}
 
     protected static void verifyArgs(String[] args) {
         if (args.length < 1) {

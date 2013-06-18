@@ -31,6 +31,8 @@ public class War {
 		Utils.deleteDir(target);
 		target.mkdirs();
 		this.directory = extractWar(target);
+
+        deleteOnShutdown();
     }
 
     public File getDirectory() {
@@ -66,5 +68,14 @@ public class War {
 		zipfile.close();
 
 		return explodedDir;
+	}
+
+	protected void deleteOnShutdown() {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				Utils.deleteDir(getDirectory());
+			}
+		});
 	}
 }

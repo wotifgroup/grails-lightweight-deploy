@@ -1,8 +1,8 @@
 package grails.lightweight
 
 import com.codahale.metrics.MetricRegistry
-import grails.plugin.lightweightdeploy.Launcher
-import grails.test.mixin.*
+import grails.plugin.lightweightdeploy.ExternalContext
+import grails.test.mixin.Mock
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.junit.Test
 
@@ -16,7 +16,7 @@ class MetricsFiltersTests {
         MetricRegistry metricRegistry = new MetricRegistry()
         def servletContextMock = mockFor(ServletContext)
         servletContextMock.demand.getAttribute {String name ->
-            assertEquals Launcher.METRICS_REGISTRY_SERVLET_ATTRIBUTE, name
+            assertEquals ExternalContext.METRICS_REGISTRY_SERVLET_ATTRIBUTE, name
             return metricRegistry
         }
         ServletContextHolder.servletContext = servletContextMock.createMock()

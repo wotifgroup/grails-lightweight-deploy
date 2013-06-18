@@ -1,9 +1,10 @@
-package grails.plugin.lightweightdeploy
+package grails.plugin.lightweightdeploy.connector
 
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.health.HealthCheckRegistry
 import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector
 import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector
+import grails.plugin.lightweightdeploy.Configuration
 import org.eclipse.jetty.server.AbstractConnector
 import org.eclipse.jetty.server.ssl.SslSocketConnector
 import org.junit.Test
@@ -13,24 +14,36 @@ import static junit.framework.Assert.assertEquals
 class ExternalConnectorFactoryTest {
 
     @Test
-    void ifSslShouldBeInstrumentedSslConnector() {
+    void httpsPortShouldBeSetFromConfiguration() {
+        assertEquals(1234,
+                     getConnector(defaultConfig(true)).port)
+    }
+
+    @Test
+    void httpPortShouldBeSetFromConfiguration() {
+        assertEquals(1234,
+                     getConnector(defaultConfig(true)).port)
+    }
+
+    @Test
+    void httpsShouldBeInstrumented() {
         assertEquals(InstrumentedSslSocketConnector.class,
                      getConnector(defaultConfig(true)).getClass())
     }
 
     @Test
-    void ifNotSslShouldBeInstrumentedConnector() {
+    void httpShouldBeInstrumented() {
         assertEquals(InstrumentedSelectChannelConnector.class,
                      getConnector(defaultConfig(false)).getClass())
     }
 
     @Test
-    void sslShouldHaveDefaultValuesSet() {
+    void httpsShouldHaveDefaultValuesSet() {
         testDefaultValues(getConnector(defaultConfig(true)))
     }
 
     @Test
-    void nonSslShouldHaveDefaultValuesSet() {
+    void httpShouldHaveDefaultValuesSet() {
         testDefaultValues(getConnector(defaultConfig(false)))
     }
 
