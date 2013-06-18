@@ -1,4 +1,4 @@
-grails-lightweight
+grails-lightweight-deploy
 ==================
 
 This plugin is intended to produce a lightweight, production-ready, deployable grails application. It embeds jetty, and uses a number of
@@ -6,9 +6,9 @@ the conventions from [Dropwizard](http://dropwizard.codahale.com) that make sens
 auto-instrumenting of controllers with codahale metrics and exposing a secondary port for the AdminServlet.
 
 ##Getting Started
-Add the following to your BuildConfig:
+Add the plugin to your BuildConfig:
 ```
-compile ":lightweight-deploy:0.5.3"
+compile ":lightweight-deploy:latest"
 ```
 ideally you should also replace the tomcat plugin with:
 ```
