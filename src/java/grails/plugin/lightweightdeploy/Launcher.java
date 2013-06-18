@@ -2,19 +2,13 @@ package grails.plugin.lightweightdeploy;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
-import com.google.common.io.ByteStreams;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.EnumSet;
-import javax.servlet.DispatcherType;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -23,12 +17,7 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
-import org.eclipse.jetty.webapp.MetaInfConfiguration;
-import org.eclipse.jetty.webapp.TagLibConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebInfConfiguration;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +26,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
-
-    public static final String METRICS_REGISTRY_SERVLET_ATTRIBUTE = "metricsRegistry";
-    public static final String HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE = "healthCheckRegistry";
 
     private static final String EXTERNAL_CONNECTOR_NAME = "external";
     private static final String INTERNAL_CONNECTOR_NAME = "internal";
@@ -103,15 +89,6 @@ public class Launcher {
 		Server server = configureJetty(war);
 
 		startJetty(server);
-	}
-
-	protected File extractWebdefaultXml() throws IOException {
-		InputStream embeddedWebdefault = getClass().getClassLoader().getResourceAsStream("webdefault.xml");
-		File temp = File.createTempFile("webdefault", ".war").getAbsoluteFile();
-		temp.getParentFile().mkdirs();
-		temp.deleteOnExit();
-		ByteStreams.copy(embeddedWebdefault, new FileOutputStream(temp));
-		return temp;
 	}
 
 	protected Server configureJetty(War war) throws IOException {
@@ -183,29 +160,11 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-	protected Handler createApplicationContext(String webappRoot) throws IOException {
-		// Jetty requires a 'defaults descriptor' on the filesystem
-		File webDefaults = extractWebdefaultXml();
+	protected Handler createApplicationContext(String webAppRoot) throws IOException {
+		WebAppContext context = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
 
-		WebAppContext context = new WebAppContext(webappRoot, "/");
-
-        context.setAttribute(METRICS_REGISTRY_SERVLET_ATTRIBUTE, this.metricsRegistry);
-        context.setAttribute(HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE, this.healthCheckRegistry);
-
-        context.setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, this.metricsRegistry);
-        context.addFilter(InstrumentedFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-
-        context.setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
-                                                                               new WebXmlConfiguration(),
-                                                                               new MetaInfConfiguration(),
-                                                                               new JettyWebXmlConfiguration(),
-                                                                               new TagLibConfiguration()});
-		context.setDefaultsDescriptor(webDefaults.getPath());
-
+        //bind this context to the external connector
         context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
-
-        //ensure the logback settings we've already configured are re-used in the app.
-        context.setParentLoaderPriority(true);
 
         configureExternalServlets(context);
 

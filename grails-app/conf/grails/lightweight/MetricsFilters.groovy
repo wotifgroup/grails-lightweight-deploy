@@ -2,7 +2,7 @@ package grails.lightweight
 
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.Timer
-import grails.plugin.lightweightdeploy.Launcher
+import grails.plugin.lightweightdeploy.ExternalContext
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 
 import static com.codahale.metrics.MetricRegistry.name
@@ -36,6 +36,6 @@ class MetricsFilters {
     }
 
     protected MetricRegistry getMetricRegistry() {
-        ServletContextHolder.servletContext.getAttribute(Launcher.METRICS_REGISTRY_SERVLET_ATTRIBUTE)
+        ServletContextHolder.servletContext.getAttribute(ExternalContext.METRICS_REGISTRY_SERVLET_ATTRIBUTE)
     }
 }
