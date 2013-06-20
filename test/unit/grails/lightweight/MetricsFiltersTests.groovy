@@ -31,6 +31,20 @@ class MetricsFiltersTests {
         assertEquals 1, metricRegistry.getTimers().get("test.defaultAction").getCount()
     }
 
+    /**
+     * No metricRegistry when just using run-app.
+     */
+    @Test
+    void shouldNotFailIfNoMetricRegistry() {
+        def servletContextMock = mockFor(ServletContext)
+        servletContextMock.demand.getAttribute {String name ->
+            null
+        }
+        ServletContextHolder.servletContext = servletContextMock.createMock()
+
+        new MetricsFilters().startTimer("test", "testAction")
+    }
+
     private MetricRegistry mockMetricRegistry() {
         MetricRegistry metricRegistry = new MetricRegistry()
         def servletContextMock = mockFor(ServletContext)
