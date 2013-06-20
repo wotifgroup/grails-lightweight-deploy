@@ -15,7 +15,7 @@ class MetricsFilters {
         all(controller:'*', action:'*') {
             before = {
                 try {
-                    Timer timer = metricRegistry.timer(name(controllerName, actionName))
+                    Timer timer = metricRegistry.timer(name(controllerName, actionName?:"defaultAction"))
                     Timer.Context context = timer.time();
                     timerContextThreadLocal.set(context)
                 } catch (Throwable e) {
