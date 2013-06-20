@@ -13,6 +13,25 @@ class MetricsFiltersTests {
 
     @Test
     void controllerCallShouldBeTimed() {
+        MetricRegistry metricRegistry = mockMetricRegistry()
+
+        withFilters(controller: "test", action: 'testAction') {
+            Thread.sleep(100)
+        }
+        assertEquals 1, metricRegistry.getTimers().get("test.testAction").getCount()
+    }
+
+    @Test
+    void actionNameShouldDefault() {
+        MetricRegistry metricRegistry = mockMetricRegistry()
+
+        withFilters(controller: "test") {
+            Thread.sleep(100)
+        }
+        assertEquals 1, metricRegistry.getTimers().get("test.defaultAction").getCount()
+    }
+
+    private MetricRegistry mockMetricRegistry() {
         MetricRegistry metricRegistry = new MetricRegistry()
         def servletContextMock = mockFor(ServletContext)
         servletContextMock.demand.getAttribute {String name ->
@@ -20,9 +39,6 @@ class MetricsFiltersTests {
             return metricRegistry
         }
         ServletContextHolder.servletContext = servletContextMock.createMock()
-        withFilters(controller: "test", action: 'testAction') {
-            Thread.sleep(100)
-        }
-        assertEquals 1, metricRegistry.getTimers().get("test.testAction").getCount()
+        metricRegistry
     }
 }
