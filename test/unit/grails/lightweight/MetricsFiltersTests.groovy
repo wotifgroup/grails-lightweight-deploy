@@ -31,6 +31,14 @@ class MetricsFiltersTests {
         assertEquals 1, metricRegistry.getTimers().get("test.defaultAction").getCount()
     }
 
+    @Test
+    void controllerNameShouldDefault() {
+        MetricRegistry metricRegistry = mockMetricRegistry()
+
+        new MetricsFilters().startTimer(null, null)
+        assertNotNull metricRegistry.getTimers().get("noController.defaultAction")
+    }
+
     /**
      * No metricRegistry when just using run-app.
      */
