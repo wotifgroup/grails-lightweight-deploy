@@ -34,7 +34,7 @@ class MetricsFilters {
         MetricRegistry metricRegistry = metricRegistry
         //will be null when using just run-app
         if (metricRegistry) {
-            Timer timer = metricRegistry.timer(name(controllerName, actionName?:"defaultAction"))
+            Timer timer = metricRegistry.timer(name(controllerName?:"", actionName?:"defaultAction"))
             Timer.Context context = timer.time();
             timerContextThreadLocal.set(context)
         }
