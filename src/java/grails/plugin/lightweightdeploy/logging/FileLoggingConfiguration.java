@@ -2,13 +2,20 @@ package grails.plugin.lightweightdeploy.logging;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.base.Optional;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class FileLoggingConfiguration {
 
     private String logFilePath;
     private TimeZone logFileTimeZone = TimeZone.getDefault();
-    private Level loggingThreshold = Level.INFO;
+    private Level loggingThreshold = Level.ALL;
+    private Level rootLevel = Level.INFO;
+    private Map<String, Level> loggers = new HashMap<String, Level>();
+
+
 
     public FileLoggingConfiguration(String logFilePath) {
         this.logFilePath = logFilePath;
@@ -46,11 +53,27 @@ public class FileLoggingConfiguration {
         return Optional.absent();
     }
 
+    public Level getRootLevel() {
+        return this.rootLevel;
+    }
+
+    public Map<String, Level> getLoggers() {
+        return loggers;
+    }
+
     public void setLogFileTimeZone(TimeZone logFileTimeZone) {
         this.logFileTimeZone = logFileTimeZone;
     }
 
     public void setLoggingThreshold(Level loggingThreshold) {
         this.loggingThreshold = loggingThreshold;
+    }
+
+    public void setRootLevel(Level rootLevel) {
+        this.rootLevel = rootLevel;
+    }
+
+    public void setLoggers(Map<String, Level> loggers) {
+        this.loggers = loggers;
     }
 }

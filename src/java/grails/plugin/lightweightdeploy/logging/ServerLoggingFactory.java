@@ -5,10 +5,13 @@ import ch.qos.logback.classic.jmx.JMXConfigurator;
 import ch.qos.logback.classic.jul.LevelChangePropagator;
 import grails.plugin.lightweightdeploy.Configuration;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import ch.qos.logback.classic.Level;
+
 
 /**
  * Borrowed heavily from com.yammer.dropwizard.logging.LoggingFactory.
@@ -34,7 +37,7 @@ public class ServerLoggingFactory {
 
         final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
         try {
-            final ObjectName objectName = new ObjectName("grails.plugin.lightweight:type=Logging");
+            final ObjectName objectName = new ObjectName("grails.plugin.lightweightdeploy:type=Logging");
             if (!server.isRegistered(objectName)) {
                 server.registerMBean(new JMXConfigurator(root.getLoggerContext(),
                                                          server,
@@ -62,7 +65,11 @@ public class ServerLoggingFactory {
 
         root.getLoggerContext().addListener(propagator);
 
-        root.setLevel(config.getServerLogConfiguration().getThreshold());
+        root.setLevel(config.getServerLogConfiguration().getRootLevel());
+
+        for (Map.Entry<String, Level> entry : config.getServerLogConfiguration().getLoggers().entrySet()) {
+            ((Logger) LoggerFactory.getLogger(entry.getKey())).setLevel(entry.getValue());
+        }
 
         return root;
     }

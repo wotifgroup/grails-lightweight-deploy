@@ -103,13 +103,21 @@ public class Configuration {
         if (config.containsKey("logging")) {
             Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
             if (loggingConfig.containsKey("file")) {
-                Map<String, String> fileConfig = (Map<String, String>) loggingConfig.get("file");
-                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig.get("currentLogFilename"));
+                Map<String, ?> fileConfig = (Map<String, ?>) loggingConfig.get("file");
+                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig.get("currentLogFilename").toString());
                 if (fileConfig.containsKey("timeZone")) {
-                    this.serverLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(fileConfig.get("timeZone")));
+                    this.serverLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(fileConfig.get("timeZone").toString()));
                 }
                 if (fileConfig.containsKey("threshold")) {
-                    this.serverLogConfiguration.setLoggingThreshold(Level.toLevel(fileConfig.get("threshold")));
+                    this.serverLogConfiguration.setLoggingThreshold(Level.toLevel(fileConfig.get("threshold").toString()));
+                }
+                if (fileConfig.containsKey("rootLevel")) {
+                    this.serverLogConfiguration.setRootLevel(Level.toLevel(fileConfig.get("rootLevel").toString()));
+                }
+                if (fileConfig.containsKey("loggers")) {
+                    for (Map.Entry<String, ?> entry : ((Map<String, ?>) fileConfig.get("loggers")).entrySet()) {
+                        this.serverLogConfiguration.getLoggers().put(entry.getKey(), Level.toLevel(entry.getValue().toString()));
+                    }
                 }
             }
         }

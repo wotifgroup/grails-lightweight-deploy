@@ -56,7 +56,7 @@ http:
 logging:
     file:
         currentLogFilename: ./server.log
-        threshold: INFO
+        rootLevel: INFO
 ```
 execute:
 ```
@@ -96,8 +96,14 @@ logging:
     file:
         #The path to the file to write the server log to.
         currentLogFilename: ./server.log
+        #The default log level
+        rootLevel: INFO
         #The threshold over which log statements must be before being logged.
-        threshold: INFO
+        threshold: ALL
+        #custom log levels
+        loggers:
+            foo: ERROR
+            bar.baz: DEBUG
 
 #If this block is present, then a jmx server will be started on the given ports. Both are required.
 jmx:
