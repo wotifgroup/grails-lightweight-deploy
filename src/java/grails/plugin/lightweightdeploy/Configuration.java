@@ -89,13 +89,7 @@ public class Configuration {
         Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
         if (httpConfig.containsKey("requestLog")) {
             Map<String, String> loggingConfig = (Map<String, String>) ((Map<String, ?>) httpConfig.get("requestLog")).get("file");
-            this.requestLogConfiguration = new FileLoggingConfiguration(loggingConfig.get("currentLogFilename"));
-            if (loggingConfig.containsKey("timeZone")) {
-                this.requestLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(loggingConfig.get("timeZone")));
-            }
-            if (loggingConfig.containsKey("threshold")) {
-                this.requestLogConfiguration.setLoggingThreshold(Level.toLevel(loggingConfig.get("threshold")));
-            }
+            this.requestLogConfiguration = new FileLoggingConfiguration(loggingConfig);
         }
     }
 
@@ -104,21 +98,7 @@ public class Configuration {
             Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
             if (loggingConfig.containsKey("file")) {
                 Map<String, ?> fileConfig = (Map<String, ?>) loggingConfig.get("file");
-                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig.get("currentLogFilename").toString());
-                if (fileConfig.containsKey("timeZone")) {
-                    this.serverLogConfiguration.setLogFileTimeZone(TimeZone.getTimeZone(fileConfig.get("timeZone").toString()));
-                }
-                if (fileConfig.containsKey("threshold")) {
-                    this.serverLogConfiguration.setLoggingThreshold(Level.toLevel(fileConfig.get("threshold").toString()));
-                }
-                if (fileConfig.containsKey("rootLevel")) {
-                    this.serverLogConfiguration.setRootLevel(Level.toLevel(fileConfig.get("rootLevel").toString()));
-                }
-                if (fileConfig.containsKey("loggers")) {
-                    for (Map.Entry<String, ?> entry : ((Map<String, ?>) fileConfig.get("loggers")).entrySet()) {
-                        this.serverLogConfiguration.addLogger(entry.getKey(), Level.toLevel(entry.getValue().toString()));
-                    }
-                }
+                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig);
             }
         }
     }
