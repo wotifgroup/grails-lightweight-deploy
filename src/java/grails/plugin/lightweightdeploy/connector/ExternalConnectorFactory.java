@@ -51,9 +51,9 @@ public class ExternalConnectorFactory extends AbstractConnectorFactory {
 
 	protected AbstractConnector configureExternalHttpsConnector() {
         SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setCertAlias(getConfiguration().getKeyStoreAlias());
-        sslContextFactory.setKeyStorePath(getConfiguration().getKeyStorePath());
-        sslContextFactory.setKeyStorePassword(getConfiguration().getKeyStorePassword());
+        sslContextFactory.setCertAlias(getConfiguration().getSslConfiguration().getKeyStoreAlias());
+        sslContextFactory.setKeyStorePath(getConfiguration().getSslConfiguration().getKeyStorePath());
+        sslContextFactory.setKeyStorePassword(getConfiguration().getSslConfiguration().getKeyStorePassword());
 
         InstrumentedSslSocketConnector connector = new InstrumentedSslSocketConnector(
             this.metricRegistry,

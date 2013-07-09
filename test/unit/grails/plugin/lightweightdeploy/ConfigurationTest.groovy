@@ -29,21 +29,21 @@ public class ConfigurationTest {
     void shouldSetKeystoreAliasFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("app.domain.com", configuration.getKeyStoreAlias())
+        assertEquals("app.domain.com", configuration.sslConfiguration.keyStoreAlias)
     }
 
     @Test
     void shouldSetKeystorePathFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("/etc/pki/tls/jks/test.jks", configuration.getKeyStorePath())
+        assertEquals("/etc/pki/tls/jks/test.jks", configuration.sslConfiguration.keyStorePath)
     }
 
     @Test
     void shouldSetKeystorePasswordFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("password", configuration.getKeyStorePassword())
+        assertEquals("password", configuration.sslConfiguration.keyStorePassword)
     }
 
     @Test

@@ -1,16 +1,14 @@
 package grails.plugin.lightweightdeploy;
 
-import ch.qos.logback.classic.Level;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import grails.plugin.lightweightdeploy.connector.SslConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
 import grails.plugin.lightweightdeploy.logging.FileLoggingConfiguration;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
-import java.util.TimeZone;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * Stores the configuration for the jetty server
@@ -18,11 +16,8 @@ import org.yaml.snakeyaml.Yaml;
 public class Configuration {
 
     private Integer port;
-    private boolean ssl = false;
+    private SslConfiguration sslConfiguration;
     private Integer adminPort;
-    private String keyStorePath;
-    private String keyStorePassword;
-    private String keyStoreAlias;
     private FileLoggingConfiguration serverLogConfiguration;
     private FileLoggingConfiguration requestLogConfiguration;
     private File workDir;
@@ -48,17 +43,8 @@ public class Configuration {
 
         this.port = (Integer) httpConfig.get("port");
         if (httpConfig.containsKey("ssl")) {
-            this.ssl = true;
             Map<String, String> sslConfig = (Map<String, String>) httpConfig.get("ssl");
-
-            //configure SSL key store
-            this.keyStorePath = sslConfig.get("keyStore");
-            this.keyStoreAlias = sslConfig.get("certAlias");
-            if (sslConfig.containsKey("keyStorePassword")) {
-                this.keyStorePassword = sslConfig.get("keyStorePassword");
-            } else if (sslConfig.containsKey("keyStorePasswordPath")) {
-                this.keyStorePassword = Files.toString(new File(sslConfig.get("keyStorePasswordPath")), Charsets.US_ASCII);
-            }
+            this.sslConfiguration = new SslConfiguration(sslConfig);
         }
 
         this.adminPort = null;
@@ -140,19 +126,11 @@ public class Configuration {
     }
 
     public boolean isSsl() {
-        return ssl;
+        return (this.sslConfiguration != null);
     }
 
-    public String getKeyStorePath() {
-        return keyStorePath;
-    }
-
-    public String getKeyStorePassword() {
-        return keyStorePassword;
-    }
-
-    public String getKeyStoreAlias() {
-        return keyStoreAlias;
+    public SslConfiguration getSslConfiguration() {
+        return sslConfiguration;
     }
 
     public FileLoggingConfiguration getServerLogConfiguration() {
@@ -171,10 +149,8 @@ public class Configuration {
     public String toString() {
         return "Configuration{" +
                "port=" + port +
-               ", ssl=" + ssl +
                ", adminPort=" + adminPort +
-               ", keyStorePath='" + keyStorePath + '\'' +
-               ", keyStoreAlias='" + keyStoreAlias + '\'' +
+               ", ssl=" + isSsl() +
                '}';
     }
 }
