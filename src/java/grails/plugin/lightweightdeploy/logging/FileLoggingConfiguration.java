@@ -21,6 +21,10 @@ public class FileLoggingConfiguration {
         this.logFilePath = logFilePath;
     }
 
+    public void addLogger(String packagePath, Level level) {
+        this.loggers.put(packagePath, level);
+    }
+
     public Level getThreshold() {
         return loggingThreshold;
     }
@@ -71,9 +75,5 @@ public class FileLoggingConfiguration {
 
     public void setRootLevel(Level rootLevel) {
         this.rootLevel = rootLevel;
-    }
-
-    public void setLoggers(Map<String, Level> loggers) {
-        this.loggers = loggers;
     }
 }

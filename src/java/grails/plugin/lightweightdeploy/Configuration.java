@@ -116,7 +116,7 @@ public class Configuration {
                 }
                 if (fileConfig.containsKey("loggers")) {
                     for (Map.Entry<String, ?> entry : ((Map<String, ?>) fileConfig.get("loggers")).entrySet()) {
-                        this.serverLogConfiguration.getLoggers().put(entry.getKey(), Level.toLevel(entry.getValue().toString()));
+                        this.serverLogConfiguration.addLogger(entry.getKey(), Level.toLevel(entry.getValue().toString()));
                     }
                 }
             }
