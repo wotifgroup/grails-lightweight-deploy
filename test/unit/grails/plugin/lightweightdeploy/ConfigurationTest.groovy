@@ -135,6 +135,14 @@ public class ConfigurationTest {
         Configuration configuration = new Configuration(config)
         assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.serverLogConfiguration.timeZone)
     }
+
+    @Test
+    void serverLoggingFormatShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("[%d{ISO8601}] %m%n", configuration.serverLogConfiguration.logFormat.get())
+    }
     
     @Test
     void requestLoggingThresholdShouldDefaultToAll() throws IOException {
@@ -265,7 +273,8 @@ public class ConfigurationTest {
                         "bar.baz": Level.ERROR.levelStr
                     ],
                     currentLogFilename: "/app/logs/server.log",
-                    timeZone: "GMT+10"]]
+                    timeZone: "GMT+10",
+                    logFormat: "[%d{ISO8601}] %m%n"]]
         config.logging
     }
 }
