@@ -14,6 +14,7 @@ public class FileLoggingConfiguration {
     private Level loggingThreshold = Level.ALL;
     private Level rootLevel = Level.INFO;
     private Map<String, Level> loggers = new HashMap<String, Level>();
+    private String logFormat;
 
     public FileLoggingConfiguration(Map<String, ?> config) {
         this.logFilePath = config.get("currentLogFilename").toString();
@@ -30,6 +31,9 @@ public class FileLoggingConfiguration {
             for (Map.Entry<String, ?> entry : ((Map<String, ?>) config.get("loggers")).entrySet()) {
                 addLogger(entry.getKey(), Level.toLevel(entry.getValue().toString()));
             }
+        }
+        if (config.containsKey("logFormat")) {
+            setLogFormat(config.get("logFormat").toString());
         }
     }
 
@@ -65,8 +69,7 @@ public class FileLoggingConfiguration {
     }
 
     public Optional<String> getLogFormat() {
-        //TODO: support custom log format
-        return Optional.absent();
+        return Optional.fromNullable(logFormat);
     }
 
     public Level getRootLevel() {
@@ -87,5 +90,9 @@ public class FileLoggingConfiguration {
 
     public void setRootLevel(Level rootLevel) {
         this.rootLevel = rootLevel;
+    }
+
+    public void setLogFormat(String logFormat) {
+        this.logFormat = logFormat;
     }
 }
