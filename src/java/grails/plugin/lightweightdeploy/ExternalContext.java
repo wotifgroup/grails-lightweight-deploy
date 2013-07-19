@@ -44,6 +44,9 @@ public class ExternalContext extends WebAppContext {
 
         //ensure the logback settings we've already configured are re-used in the app.
         setParentLoaderPriority(true);
+
+        //disable the default directory listing
+        setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
     }
 
 	protected File extractWebdefaultXml() throws IOException {

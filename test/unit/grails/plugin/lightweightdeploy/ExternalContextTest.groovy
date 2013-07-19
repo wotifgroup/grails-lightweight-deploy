@@ -50,6 +50,11 @@ class ExternalContextTest {
         assertTrue(configurationClasses.contains(TagLibConfiguration.class))
     }
 
+    @Test
+    void directoryListingShouldBeDisabled() {
+        assertEquals("false", externalContext.getInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed"))
+    }
+
     private ExternalContext getExternalContext() {
         new ExternalContext(".", new MetricRegistry(), new HealthCheckRegistry())
     }
