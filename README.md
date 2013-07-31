@@ -184,6 +184,11 @@ server, to make tracking of the build into production easier.
 lightweight-deploy automatically instruments all controller methods with [Codahale Metrics](http://metrics.codahale.com/). Each Timer is created dynamically
 as requests come in, named as "controllerName.actionName". The metrics are viewable at "http://server:adminPort/metrics".
 
+You can access the MetricRegistry and create your own metrics using:
+```
+grails.plugin.lightweightdeploy.metrics.MetricsUtil.metricRegistry
+```
+
 ##License
 lightweight-deploy is licensed under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
 
