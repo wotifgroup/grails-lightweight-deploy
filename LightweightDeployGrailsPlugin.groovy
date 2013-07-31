@@ -15,7 +15,7 @@ This plugin uses some code from both the standalone plugin by Burt Beckwith and 
 
     def developers = [ [ name: "Adam Harwood", email: "adamtroyh@gmail.com" ]]
 
-    def issueManagement = [ system: "githqub", url: "https://github.com/aharwood/grails-lightweight-deploy" ]
+    def issueManagement = [ system: "github", url: "https://github.com/aharwood/grails-lightweight-deploy" ]
 
     def scm = [ url: "https://github.com/aharwood/grails-lightweight-deploy/" ]
 
