@@ -71,8 +71,11 @@ buildWar = { File workDir ->
 	File warfile = new File(workDir, 'embedded.war').absoluteFile
 	warfile.deleteOnExit()
 
-	argsMap.params.clear()
-	argsMap.params << warfile.path
+    // this is for grails <=2.2.2
+    argsMap.params.clear()
+    argsMap.params << warfile.path
+    // this is for grails >=2.2.3
+    grailsSettings.projectWarFile = warfile
 	war()
 
 	warfile
