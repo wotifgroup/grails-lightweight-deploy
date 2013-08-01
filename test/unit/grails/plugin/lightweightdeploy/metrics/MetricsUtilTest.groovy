@@ -14,8 +14,6 @@ class MetricsUtilTest {
 
     @Test
     void metricsRegistryShouldBeReturnedFromServletContext() {
-        Environment.metaClass.'static'.getCurrent = { -> Environment.PRODUCTION }
-
         final MetricRegistry metricRegistry = new MetricRegistry()
         ServletContextHolder.servletContext = [
             getAttribute: { String attributeName ->
@@ -26,6 +24,6 @@ class MetricsUtilTest {
                 }
             }
         ] as ServletContext
-        assertEquals(metricRegistry, MetricsUtil.metricRegistry)
+        assertEquals(metricRegistry, MetricsUtil.getMetricRegistry(Environment.PRODUCTION))
     }
 }
