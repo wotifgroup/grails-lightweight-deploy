@@ -2,6 +2,7 @@ package grails.plugin.lightweightdeploy.metrics
 
 import com.codahale.metrics.MetricRegistry
 import grails.plugin.lightweightdeploy.ExternalContext
+import grails.util.Environment
 import org.codehaus.groovy.grails.web.context.ServletContextHolder
 import org.junit.Test
 
@@ -13,6 +14,8 @@ class MetricsUtilTest {
 
     @Test
     void metricsRegistryShouldBeReturnedFromServletContext() {
+        Environment.metaClass.'static'.getCurrent = { -> Environment.PRODUCTION }
+
         final MetricRegistry metricRegistry = new MetricRegistry()
         ServletContextHolder.servletContext = [
             getAttribute: { String attributeName ->
