@@ -1,4 +1,4 @@
-package grails.plugin.lightweightdeploy.metrics
+package grails.plugin.lightweightdeploy.application.metrics
 
 import com.codahale.metrics.MetricRegistry
 import grails.plugin.lightweightdeploy.ExternalContext
