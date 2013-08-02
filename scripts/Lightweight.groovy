@@ -105,6 +105,7 @@ buildJar = { File workDir, File jar ->
         }
         fileset(dir: pluginClassesDir) {
             include name: "grails/plugin/lightweightdeploy/**"
+            exclude name: "**/lightweightdeploy/application/**"
         }
 		manifest {
 			attribute name: 'Main-Class', value: mainClass

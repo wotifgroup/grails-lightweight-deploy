@@ -186,7 +186,7 @@ as requests come in, named as "controllerName.actionName". The metrics are viewa
 
 You can access the MetricRegistry and create your own metrics using:
 ```
-grails.plugin.lightweightdeploy.metrics.MetricsUtil.metricRegistry
+grails.plugin.lightweightdeploy.application.metrics.MetricsUtil.getMetricRegistry()
 ```
 
 ##License
