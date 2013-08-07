@@ -2,6 +2,7 @@ package grails.plugin.lightweightdeploy;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
 import com.codahale.metrics.servlets.AdminServlet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
@@ -167,10 +168,16 @@ public class Launcher {
 		return context;
 	}
 
+    protected void configureHealthChecks(){
+        HealthCheckRegistry healthCheckRegistry =  getHealthCheckRegistry();
+        healthCheckRegistry.register("threadDeadlock", new ThreadDeadlockHealthCheck());
+    }
+
     /**
      * Override point for subclasses
      */
     protected void configureExternalServlets(WebAppContext context) {
+        configureHealthChecks();
     }
 
     protected static void verifyArgs(String[] args) {
