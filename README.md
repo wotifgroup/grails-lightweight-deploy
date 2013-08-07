@@ -165,7 +165,7 @@ protected void configureExternalServlets(WebAppContext context) {
 }
 ```
 Similarly the plugin provides a default [ThreadDeadlockHealthCheck](http://maginatics.github.io/metrics/apidocs/com/codahale/metrics/health/jvm/ThreadDeadlockHealthCheck.html)
-HealthCheck at "http://server:adminPort/healthcheck"
+at "http://server:adminPort/healthcheck"
 Custom HealthChecks can be added by overriding:
 ```
 protected void configureHealthChecks()
