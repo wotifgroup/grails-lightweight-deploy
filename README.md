@@ -164,6 +164,12 @@ protected void configureExternalServlets(WebAppContext context) {
     context.addServlet(new ServletHolder(new MyCustomServlet()), "/custom/url");
 }
 ```
+Similarly the plugin provides a default [ThreadDeadlockHealthCheck](http://maginatics.github.io/metrics/apidocs/com/codahale/metrics/health/jvm/ThreadDeadlockHealthCheck.html)
+HealthCheck at "http://server:adminPort/healthcheck"
+Custom HealthChecks can be added by overriding:
+```
+protected void configureHealthChecks()
+```
 Be sure to still call super when overriding these methods for the default behaviour.
 
 ## Command-Line Arguments
