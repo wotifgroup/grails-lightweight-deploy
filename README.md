@@ -172,6 +172,8 @@ protected void configureHealthChecks()
 ```
 Be sure to still call super when overriding these methods for the default behaviour.
 
+Alternatively, if you need to add HealthChecks from a Spring-managed bean, or Resources.groovy, you can use the HealthCheckUtil class to get easy access to the HealthCheckRegistry.
+
 ## Command-Line Arguments
 By default, the artifact produced will have a name of the form: appName-appVersion-date (e.g. testapp-1.0-2013.01.01). This is
 fairly friendly, informational default. It is, however possible to configure the name of the artifact produced from the command line.
