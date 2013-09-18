@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class SslConfiguration {
 
+    private Integer port;
     private String keyStorePath;
     private String keyStorePassword;
     private String keyStoreAlias;
@@ -22,6 +23,10 @@ public class SslConfiguration {
         } else if (sslConfig.containsKey("keyStorePasswordPath")) {
             this.keyStorePassword = Files.toString(new File(sslConfig.get("keyStorePasswordPath")), Charsets.US_ASCII);
         }
+
+        if (sslConfig.containsKey("port")) {
+            this.port = Integer.valueOf(sslConfig.get("port"));
+        }
     }
 
     public String getKeyStorePath() {
@@ -34,5 +39,9 @@ public class SslConfiguration {
 
     public String getKeyStoreAlias() {
         return keyStoreAlias;
+    }
+
+    public Integer getPort() {
+        return port;
     }
 }

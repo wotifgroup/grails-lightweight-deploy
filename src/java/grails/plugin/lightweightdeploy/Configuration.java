@@ -125,6 +125,10 @@ public class Configuration {
         return (this.serverLogConfiguration != null);
     }
 
+    public boolean isMixedMode() {
+        return isSsl() && sslConfiguration.getPort() != null && sslConfiguration.getPort() != port;
+    }
+
     public boolean isSsl() {
         return (this.sslConfiguration != null);
     }

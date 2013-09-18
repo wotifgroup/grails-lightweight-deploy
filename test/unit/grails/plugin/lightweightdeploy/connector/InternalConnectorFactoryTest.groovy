@@ -10,6 +10,11 @@ import static junit.framework.Assert.assertEquals
 class InternalConnectorFactoryTest {
 
     @Test
+    void onlyEverOneConnector() {
+        assertEquals(1, getConnectors(defaultConfig()).size())
+    }
+
+    @Test
     void adminPortShouldBeSetFromConfiguration() {
         assertEquals(1234, getConnector(defaultConfig()).port)
     }
@@ -20,11 +25,17 @@ class InternalConnectorFactoryTest {
         assertEquals(8, getConnector(defaultConfig()).threadPool._maxThreads)
     }
 
-    protected AbstractConnector getConnector(Configuration config) {
+    private AbstractConnector getConnector(Configuration config) {
+        getConnectors(config).iterator().next()
+    }
+
+    private Set<? extends AbstractConnector> getConnectors(Configuration config) {
         new InternalConnectorFactory(config).build()
     }
 
-    protected Configuration defaultConfig() {
+
+    private Configuration defaultConfig() {
         new Configuration([http: [adminPort: 1234]])
     }
+
 }

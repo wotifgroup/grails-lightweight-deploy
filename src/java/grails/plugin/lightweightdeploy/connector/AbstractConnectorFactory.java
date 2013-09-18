@@ -3,6 +3,8 @@ package grails.plugin.lightweightdeploy.connector;
 import grails.plugin.lightweightdeploy.Configuration;
 import org.eclipse.jetty.server.AbstractConnector;
 
+import java.util.Set;
+
 public abstract class AbstractConnectorFactory {
 
     private Configuration configuration;
@@ -11,7 +13,7 @@ public abstract class AbstractConnectorFactory {
         this.configuration = configuration;
     }
 
-    public abstract AbstractConnector build();
+    public abstract Set<? extends AbstractConnector> build();
 
     protected void defaultValues(AbstractConnector connector) {
         connector.setMaxIdleTime(200 * 1000);

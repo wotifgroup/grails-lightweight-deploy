@@ -9,7 +9,6 @@ import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
-import java.io.IOException;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -20,35 +19,36 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * Based heavily on code from Burt Beckwith's standalone plugin and Codehale's Dropwizard.
  */
 public class Launcher {
+
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
-    private static final String EXTERNAL_CONNECTOR_NAME = "external";
-    private static final String INTERNAL_CONNECTOR_NAME = "internal";
     /**
      * The directory under the exploded dir which stores the war
      */
     private static final String WAR_EXPLODED_SUBDIR = "war";
 
-	private Configuration configuration;
+    private Configuration configuration;
     private MetricRegistry metricsRegistry;
     private HealthCheckRegistry healthCheckRegistry;
 
-	/**
-	 * Start the server.
-	 */
-	public static void main(String[] args) throws IOException {
+    /**
+     * Start the server.
+     */
+    public static void main(String[] args) throws IOException {
         verifyArgs(args);
-		final Launcher launcher = new Launcher(args[0]);
-		launcher.start();
-	}
+        final Launcher launcher = new Launcher(args[0]);
+        launcher.start();
+    }
 
-	public Launcher(String configYmlPath) throws IOException {
+    public Launcher(String configYmlPath) throws IOException {
         this(new Configuration(configYmlPath));
-	}
+    }
 
     public Launcher(Configuration configuration) {
         this.configuration = configuration;
@@ -79,15 +79,15 @@ public class Launcher {
         }
     }
 
-	protected void start() throws IOException {
+    protected void start() throws IOException {
         War war = new War(this.configuration.getWorkDir());
 
-		Server server = configureJetty(war);
+        Server server = configureJetty(war);
 
-		startJetty(server);
-	}
+        startJetty(server);
+    }
 
-	protected Server configureJetty(War war) throws IOException {
+    protected Server configureJetty(War war) throws IOException {
         System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
 
         Server server = new Server();
@@ -109,47 +109,49 @@ public class Launcher {
         }
 
         return server;
-	}
+    }
 
     protected Handler configureExternal(Server server, War war) throws IOException {
-        logger.info("Configuring external connector");
+        logger.info("Configuring external connector(s)");
 
-        ExternalConnectorFactory externalConnectorFactory = new ExternalConnectorFactory(this.configuration,
-                                                                                         this.healthCheckRegistry,
-                                                                                         this.metricsRegistry);
-        AbstractConnector externalConnector = externalConnectorFactory.build();
-        externalConnector.setName(EXTERNAL_CONNECTOR_NAME);
-        server.addConnector(externalConnector);
+        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration, metricsRegistry);
+        for (AbstractConnector externalConnector : connectorFactory.build()) {
+            server.addConnector(externalConnector);
+        }
 
-        return createExternalContext(war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createExternalContext(server, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
 
     protected Handler configureInternal(Server server) {
         logger.info("Configuring admin connector");
 
-        InternalConnectorFactory internalConnectorFactory = new InternalConnectorFactory(getConfiguration());
-        AbstractConnector connector = internalConnectorFactory.build();
-        connector.setName(INTERNAL_CONNECTOR_NAME);
-        server.addConnector(connector);
+        final InternalConnectorFactory connectorFactory = new InternalConnectorFactory(getConfiguration());
+        for (AbstractConnector externalConnector : connectorFactory.build()) {
+            server.addConnector(externalConnector);
+        }
 
-        return createInternalContext();
+        return createInternalContext(server);
     }
 
-	protected void startJetty(Server server) {
-		try {
-			server.start();
-			logger.info("Startup complete. Server running on " + this.configuration.getPort());
-		}
-		catch (Exception e) {
+    protected void startJetty(Server server) {
+        try {
+            server.start();
+            logger.info("Startup complete. Server running on " + this.configuration.getPort());
+        } catch (Exception e) {
             logger.error("Error starting jetty. Exiting JVM.", e);
-			System.exit(1);
-		}
-	}
+            System.exit(1);
+        }
+    }
 
-    protected Handler createInternalContext() {
+    protected Handler createInternalContext(Server server) {
+
         final ServletContextHandler handler = new InternalContext(getHealthCheckRegistry(), getMetricsRegistry());
-        handler.setConnectorNames(new String[]{INTERNAL_CONNECTOR_NAME});
+
+        //bind this context to the external connector
+        handler.setConnectorNames(getConnectorNames(server));
+
         configureInternalServlets(handler);
+
         return handler;
     }
 
@@ -157,19 +159,27 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-	protected Handler createExternalContext(String webAppRoot) throws IOException {
-		WebAppContext context = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
+    protected Handler createExternalContext(Server server, String webAppRoot) throws IOException {
+        final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
 
         //bind this context to the external connector
-        context.setConnectorNames(new String[] {EXTERNAL_CONNECTOR_NAME});
+        handler.setConnectorNames(getConnectorNames(server));
 
-        configureExternalServlets(context);
+        configureExternalServlets(handler);
 
-		return context;
-	}
+        return handler;
+    }
 
-    protected void configureHealthChecks(){
-        HealthCheckRegistry healthCheckRegistry =  getHealthCheckRegistry();
+    private static String[] getConnectorNames(Server server) {
+        String[] connectorNames = new String[server.getConnectors().length];
+        for (int i = 0; i < server.getConnectors().length; i++) {
+            connectorNames[i] = server.getConnectors()[i].getName();
+        }
+        return connectorNames;
+    }
+
+    protected void configureHealthChecks() {
+        HealthCheckRegistry healthCheckRegistry = getHealthCheckRegistry();
         healthCheckRegistry.register("threadDeadlock", new ThreadDeadlockHealthCheck());
     }
 
@@ -185,4 +195,5 @@ public class Launcher {
             throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
         }
     }
+
 }
