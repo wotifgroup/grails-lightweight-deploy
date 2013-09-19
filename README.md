@@ -76,7 +76,7 @@ http:
     port: 8080
     #A secondary port which will serve your administrative content. This should be firewalled off from external access. Check http://localhost:8048/ for what it provides.
     adminPort: 8048
-    #If this block is specified, then the port will be over https
+    #If this block is specified, then the app will run over https (see port property for running in mixed mode)
     ssl:
         #The path to the keystore which will be used to encrypt traffic over SSL on the port.
         keyStore: /etc/pki/tls/jks/keystore.jks
@@ -86,6 +86,8 @@ http:
         keyStorePasswordPath: /path/to/plain/text/file.txt
         #Overrides keyStorePasswordPath if specified, this is the password for the keystore
         keyStorePassword: password
+        #If this is specified as well as http.port and it is different then the app will run in mixed mode (both HTTP and HTTPS)
+        port: 8081
     #If specified, then an access log will be written.
     requestLog:
         file:
@@ -93,17 +95,28 @@ http:
             currentLogFilename: ./server_access_log.txt
 
 logging:
+    #custom log levels - note that in previous versions loggers used to sit under file property, this will throw an exception now if the config remains after updating to this version 
+    loggers:
+        foo: ERROR
+        bar.baz: DEBUG
+    #The default log level - note that in previous versions rootLevel used to sit under file propety, this will throw an exception now if the config remains after updating to this version
+    rootLevel: INFO
     file:
         #The path to the file to write the server log to.
         currentLogFilename: ./server.log
-        #The default log level
-        rootLevel: INFO
         #The threshold over which log statements must be before being logged.
         threshold: ALL
-        #custom log levels
-        loggers:
-            foo: ERROR
-            bar.baz: DEBUG
+        # the timezone to print dates in
+        timeZone: GMT+10
+        # specify a log format for the file log 
+        logFormat: "%-5p [%d{ISO8601,GMT+10}] [%-30thread] %c: %m%n%xEx"
+    console:
+        # the timezone to print dates in (defaults to TimeZone.getDefault())
+        timeZone: GMT+10
+        # the threshold over which log statements must be before being logged.
+        loggingThreshold: ALL
+        # the format for the console log
+        logFormat: "%-5p [%d{ISO8601,GMT+10}] [%-30thread] %c: %m%n%xEx"
 
 #If this block is present, then a jmx server will be started on the given ports. Both are required.
 jmx:
