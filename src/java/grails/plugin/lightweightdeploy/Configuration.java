@@ -2,7 +2,7 @@ package grails.plugin.lightweightdeploy;
 
 import grails.plugin.lightweightdeploy.connector.SslConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
-import grails.plugin.lightweightdeploy.logging.FileLoggingConfiguration;
+import grails.plugin.lightweightdeploy.logging.LoggingConfiguration;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -18,8 +18,8 @@ public class Configuration {
     private Integer port;
     private SslConfiguration sslConfiguration;
     private Integer adminPort;
-    private FileLoggingConfiguration serverLogConfiguration;
-    private FileLoggingConfiguration requestLogConfiguration;
+    private LoggingConfiguration serverLogConfiguration;
+    private LoggingConfiguration requestLogConfiguration;
     private File workDir;
     private JmxConfiguration jmxConfiguration;
 
@@ -43,7 +43,7 @@ public class Configuration {
 
         this.port = (Integer) httpConfig.get("port");
         if (httpConfig.containsKey("ssl")) {
-            Map<String, String> sslConfig = (Map<String, String>) httpConfig.get("ssl");
+            Map<String, ?> sslConfig = (Map<String, ?>) httpConfig.get("ssl");
             this.sslConfiguration = new SslConfiguration(sslConfig);
         }
 
@@ -74,18 +74,13 @@ public class Configuration {
     protected void initRequestLogging(Map<String, ?> config) {
         Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
         if (httpConfig.containsKey("requestLog")) {
-            Map<String, String> loggingConfig = (Map<String, String>) ((Map<String, ?>) httpConfig.get("requestLog")).get("file");
-            this.requestLogConfiguration = new FileLoggingConfiguration(loggingConfig);
+            requestLogConfiguration = new LoggingConfiguration((Map<String, ?>) httpConfig.get("requestLog"));
         }
     }
 
     protected void initServerLogging(Map<String, ?> config) {
         if (config.containsKey("logging")) {
-            Map<String, ?> loggingConfig = (Map<String, ?>) config.get("logging");
-            if (loggingConfig.containsKey("file")) {
-                Map<String, ?> fileConfig = (Map<String, ?>) loggingConfig.get("file");
-                this.serverLogConfiguration = new FileLoggingConfiguration(fileConfig);
-            }
+            serverLogConfiguration = new LoggingConfiguration((Map<String, ?>) config.get("logging"));
         }
     }
 
@@ -137,11 +132,11 @@ public class Configuration {
         return sslConfiguration;
     }
 
-    public FileLoggingConfiguration getServerLogConfiguration() {
+    public LoggingConfiguration getServerLogConfiguration() {
         return serverLogConfiguration;
     }
 
-    public FileLoggingConfiguration getRequestLogConfiguration() {
+    public LoggingConfiguration getRequestLogConfiguration() {
         return requestLogConfiguration;
     }
 
@@ -152,9 +147,10 @@ public class Configuration {
     @Override
     public String toString() {
         return "Configuration{" +
-               "port=" + port +
-               ", adminPort=" + adminPort +
-               ", ssl=" + isSsl() +
-               '}';
+                "port=" + port +
+                ", adminPort=" + adminPort +
+                ", ssl=" + isSsl() +
+                '}';
     }
+
 }

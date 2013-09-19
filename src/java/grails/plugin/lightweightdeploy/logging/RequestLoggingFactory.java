@@ -3,7 +3,7 @@ package grails.plugin.lightweightdeploy.logging;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import com.codahale.metrics.Clock;
 import grails.plugin.lightweightdeploy.Configuration;
@@ -20,8 +20,10 @@ public class RequestLoggingFactory {
     }
 
     public Handler configure() {
+
         final Logger logger = (Logger) LoggerFactory.getLogger("http.request");
         logger.setAdditive(false);
+
         final LoggerContext context = logger.getLoggerContext();
 
         final AppenderAttachableImpl<ILoggingEvent> appenders = new AppenderAttachableImpl<ILoggingEvent>();
@@ -29,20 +31,21 @@ public class RequestLoggingFactory {
         final RequestLogLayout layout = new RequestLogLayout();
         layout.start();
 
-        final FileAppender<ILoggingEvent> appender = LogbackFactory.buildFileAppender(config.getRequestLogConfiguration(),
-                                                                                      context);
-
-        appender.stop();
-        appender.setLayout(layout);
-        appender.start();
-        appenders.addAppender(appender);
+        for (OutputStreamAppender<ILoggingEvent> appender : LogbackFactory.buildAppenders(config.getRequestLogConfiguration(),
+                context)) {
+            appender.stop();
+            appender.setLayout(layout);
+            appender.start();
+            appenders.addAppender(appender);
+        }
 
         final RequestLogHandler handler = new RequestLogHandler();
         handler.setRequestLog(new AsyncRequestLog(Clock.defaultClock(),
-                                                  appenders,
-                                                  config.getRequestLogConfiguration().getTimeZone()));
+                appenders,
+                config.getRequestLogConfiguration().getTimeZone()));
 
         return handler;
+
     }
 
 }

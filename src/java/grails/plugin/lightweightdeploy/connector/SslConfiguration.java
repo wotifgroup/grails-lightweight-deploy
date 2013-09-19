@@ -14,18 +14,18 @@ public class SslConfiguration {
     private String keyStorePassword;
     private String keyStoreAlias;
 
-    public SslConfiguration(Map<String, String> sslConfig) throws IOException {
-        this.keyStorePath = sslConfig.get("keyStore");
-        this.keyStoreAlias = sslConfig.get("certAlias");
+    public SslConfiguration(Map<String, ?> sslConfig) throws IOException {
+        this.keyStorePath = (String) sslConfig.get("keyStore");
+        this.keyStoreAlias = (String) sslConfig.get("certAlias");
 
         if (sslConfig.containsKey("keyStorePassword")) {
-            this.keyStorePassword = sslConfig.get("keyStorePassword");
+            this.keyStorePassword = (String) sslConfig.get("keyStorePassword");
         } else if (sslConfig.containsKey("keyStorePasswordPath")) {
-            this.keyStorePassword = Files.toString(new File(sslConfig.get("keyStorePasswordPath")), Charsets.US_ASCII);
+            this.keyStorePassword = Files.toString(new File((String) sslConfig.get("keyStorePasswordPath")), Charsets.US_ASCII);
         }
 
         if (sslConfig.containsKey("port")) {
-            this.port = Integer.valueOf(sslConfig.get("port"));
+            this.port = (Integer) sslConfig.get("port");
         }
     }
 

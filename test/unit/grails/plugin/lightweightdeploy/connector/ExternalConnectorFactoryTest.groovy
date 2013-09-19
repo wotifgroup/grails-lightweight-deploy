@@ -95,7 +95,7 @@ class ExternalConnectorFactoryTest {
                     keyStorePassword: "password",
                     certAlias: "app.domain.com"]
             if (isMixedMode) {
-                map.http.ssl.put("port", "1235")
+                map.http.ssl.put("port", 1235)
             }
         }
         new Configuration(map)

@@ -2,9 +2,8 @@ package grails.plugin.lightweightdeploy
 
 import ch.qos.logback.classic.Level
 import org.junit.Test
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
+
+import static org.junit.Assert.*
 
 public class ConfigurationTest {
 
@@ -47,109 +46,174 @@ public class ConfigurationTest {
     }
 
     @Test
-    void serverLoggingThresholdShouldDefaultToAll() throws IOException {
+    void serverConsoleLoggingThresholdShouldDefaultToAll() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
-        attachServerLoggingConfig(config).file.remove("threshold")
+        attachServerConsoleLoggingConfig(config).console.remove("threshold")
         Configuration configuration = new Configuration(config)
-        assertEquals(Level.ALL, configuration.serverLogConfiguration.threshold)
+        assertEquals(Level.ALL, configuration.serverLogConfiguration.consoleConfiguration.threshold)
     }
 
     @Test
-    void serverLoggingRootLevelShouldDefaultToInfo() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig()
-        attachServerLoggingConfig(config).file.remove("rootLevel")
-        Configuration configuration = new Configuration(config)
-        assertEquals(Level.INFO, configuration.serverLogConfiguration.rootLevel)
-    }
-
-    @Test
-    void serverLoggingLoggersIsNotRequired() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig()
-        attachServerLoggingConfig(config).file.remove("loggers")
-        Configuration configuration = new Configuration(config)
-        assertEquals(0, configuration.serverLogConfiguration.loggers.size())
-    }
-
-    @Test
-    void serverLoggingLoggersCanBeEmpty() throws IOException {
-        Map<String, ? extends Object> config = defaultConfig()
-        attachServerLoggingConfig(config).file.loggers.clear()
-        Configuration configuration = new Configuration(config)
-        assertEquals(0, configuration.serverLogConfiguration.loggers.size())
-    }
-
-    @Test
-    void ifServerLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+    void ifServerLoggingConsoleSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerConsoleLoggingConfig(config)
         Configuration configuration = new Configuration(config)
         assertTrue(configuration.isServerLoggingEnabled())
     }
 
     @Test
-    void serverLoggingThresholdShouldBeSetToValueInFile() throws IOException {
+    void serverConsoleLoggingThresholdShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerConsoleLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals(Level.DEBUG, configuration.serverLogConfiguration.threshold)
+        assertEquals(Level.DEBUG, configuration.serverLogConfiguration.consoleConfiguration.threshold)
     }
 
     @Test
-    void serverLoggingRootLevelShouldBeSetToValueInFile() throws IOException {
+    void serverConsoleLoggingTimezoneShouldDefaultToLocal() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerConsoleLoggingConfig(config)
+        config.logging.console.remove("timeZone")
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.default, configuration.serverLogConfiguration.consoleConfiguration.timeZone)
+    }
+
+    @Test
+    void serverConsoleLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerConsoleLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.serverLogConfiguration.consoleConfiguration.timeZone)
+    }
+
+    @Test
+    void serverConsoleLoggingFormatShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerConsoleLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("[%d{ISO8601}] %m%n", configuration.serverLogConfiguration.consoleConfiguration.logFormat.get())
+    }
+
+    @Test
+    void serverFileLoggingThresholdShouldDefaultToAll() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config).file.remove("threshold")
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.ALL, configuration.serverLogConfiguration.fileConfiguration.threshold)
+    }
+
+    @Test
+    void serverFileLoggingRootLevelShouldDefaultToInfo() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config).remove("rootLevel")
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.INFO, configuration.serverLogConfiguration.rootLevel)
+    }
+
+    @Test
+    void serverFileLoggingLoggersIsNotRequired() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config).remove("loggers")
+        Configuration configuration = new Configuration(config)
+        assertEquals(0, configuration.serverLogConfiguration.loggers.size())
+    }
+
+    @Test
+    void serverFileLoggingLoggersCanBeEmpty() throws IOException {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config).loggers.clear()
+        Configuration configuration = new Configuration(config)
+        assertEquals(0, configuration.serverLogConfiguration.loggers.size())
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void serverFileLoggingShouldNotAcceptLoggersInsideFileConfiguration() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config)
+        config.logging.file.put("loggers", config.logging.loggers)
+        new Configuration(config)
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void serverFileLoggingShouldNotAcceptRootLevelInsideFileConfiguration() {
+        Map<String, ? extends Object> config = defaultConfig()
+        attachServerFileLoggingConfig(config)
+        config.logging.file.put("rootLevel", config.logging.rootLevel)
+        new Configuration(config)
+    }
+
+    @Test
+    void ifServerLoggingFileSetInConfigThenFileLoggingShouldBeSetToTrue() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFileLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertTrue(configuration.isServerLoggingEnabled())
+    }
+
+    @Test
+    void serverFileLoggingThresholdShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFileLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals(Level.DEBUG, configuration.serverLogConfiguration.fileConfiguration.threshold)
+    }
+
+    @Test
+    void serverFileLoggingRootLevelShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFileLoggingConfig(config)
         Configuration configuration = new Configuration(config)
         assertEquals(Level.WARN, configuration.serverLogConfiguration.rootLevel)
     }
 
     @Test
-    void serverLoggingLoggersShouldBeSetToValueInFile() throws IOException {
+    void serverFileLoggingLoggersShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerFileLoggingConfig(config)
         Configuration configuration = new Configuration(config)
         assertEquals(Level.INFO, configuration.serverLogConfiguration.loggers."foo")
         assertEquals(Level.ERROR, configuration.serverLogConfiguration.loggers."bar.baz")
     }
 
     @Test
-    void serverLoggingFileShouldBeSetToValueInFile() throws IOException {
+    void serverFileLoggingFileShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerFileLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals("/app/logs/server.log", configuration.serverLogConfiguration.currentLogFilename)
+        assertEquals("/app/logs/server.log", configuration.serverLogConfiguration.fileConfiguration.currentLogFilename)
     }
 
     @Test
-    void serverLoggingTimezoneShouldDefaultToLocal() throws IOException {
+    void serverFileLoggingTimezoneShouldDefaultToLocal() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerFileLoggingConfig(config)
         config.logging.file.remove("timeZone")
         Configuration configuration = new Configuration(config)
-        assertEquals(TimeZone.default, configuration.serverLogConfiguration.timeZone)
+        assertEquals(TimeZone.default, configuration.serverLogConfiguration.fileConfiguration.timeZone)
     }
 
     @Test
-    void serverLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
+    void serverFileLoggingTimezoneShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerFileLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.serverLogConfiguration.timeZone)
+        assertEquals(TimeZone.getTimeZone("GMT+10"), configuration.serverLogConfiguration.fileConfiguration.timeZone)
     }
 
     @Test
-    void serverLoggingFormatShouldBeSetToValueInFile() throws IOException {
+    void serverFileLoggingFormatShouldBeSetToValueInFile() throws IOException {
         Map<String, Map<String, Object>> config = defaultConfig()
-        attachServerLoggingConfig(config)
+        attachServerFileLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals("[%d{ISO8601}] %m%n", configuration.serverLogConfiguration.logFormat.get())
+        assertEquals("[%d{ISO8601}] %m%n", configuration.serverLogConfiguration.fileConfiguration.logFormat.get())
     }
-    
+
     @Test
     void requestLoggingThresholdShouldDefaultToAll() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         attachRequestLoggingConfig(config).file.remove("threshold")
         Configuration configuration = new Configuration(config)
-        assertEquals(Level.ALL, configuration.requestLogConfiguration.threshold)
+        assertEquals(Level.ALL, configuration.requestLogConfiguration.fileConfiguration.threshold)
     }
 
     @Test
@@ -165,7 +229,7 @@ public class ConfigurationTest {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals(Level.ALL, configuration.requestLogConfiguration.threshold)
+        assertEquals(Level.ALL, configuration.requestLogConfiguration.fileConfiguration.threshold)
     }
 
     @Test
@@ -173,7 +237,7 @@ public class ConfigurationTest {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals("/app/logs/request.log", configuration.requestLogConfiguration.currentLogFilename)
+        assertEquals("/app/logs/request.log", configuration.requestLogConfiguration.fileConfiguration.currentLogFilename)
     }
 
     @Test
@@ -206,7 +270,7 @@ public class ConfigurationTest {
         Configuration configuration = new Configuration(config)
         assertEquals(new File("/apps/test"), configuration.getWorkDir())
     }
-    
+
     @Test
     void jmxShouldBeDisabledIfConfigOmitted() {
         Map<String, ? extends Object> config = defaultConfig()
@@ -246,35 +310,53 @@ public class ConfigurationTest {
     protected Map<String, Map<String, Object>> defaultConfig() {
         [http: [port: 1234,
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
-                      keyStorePassword: "password",
-                      certAlias: "app.domain.com"]]]
+                        keyStorePassword: "password",
+                        certAlias: "app.domain.com"]]]
     }
 
     protected def attachJmxConfig(def config) {
         config.jmx = [serverPort: 1234,
-                      registryPort: 2345]
+                registryPort: 2345]
         config.jmx
     }
 
     protected def attachRequestLoggingConfig(def config) {
-        config.http.requestLog = [file: [threshold: Level.ALL.levelStr,
-                                         currentLogFilename: "/app/logs/request.log",
-                                         timeZone: "GMT+10"]]
+        config.http.requestLog = [
+                file: [
+                        threshold: Level.ALL.levelStr,
+                        currentLogFilename: "/app/logs/request.log",
+                        timeZone: "GMT+10"
+                ]]
         config.http.requestLog
     }
 
-    protected Map<String, Object> attachServerLoggingConfig(Map<String, Map<String, Object>> config) {
+    protected Map<String, Object> attachServerFileLoggingConfig(Map<String, Map<String, Object>> config) {
         config.logging = [
-                file: [
-                    threshold: Level.DEBUG.levelStr,
-                    rootLevel: Level.WARN.levelStr,
-                    loggers: [
+                rootLevel: Level.WARN.levelStr,
+                loggers: [
                         "foo": Level.INFO.levelStr,
                         "bar.baz": Level.ERROR.levelStr
-                    ],
-                    currentLogFilename: "/app/logs/server.log",
-                    timeZone: "GMT+10",
-                    logFormat: "[%d{ISO8601}] %m%n"]]
+                ],
+                file: [
+                        threshold: Level.DEBUG.levelStr,
+                        currentLogFilename: "/app/logs/server.log",
+                        timeZone: "GMT+10",
+                        logFormat: "[%d{ISO8601}] %m%n"]]
         config.logging
     }
+
+    protected Map<String, Object> attachServerConsoleLoggingConfig(Map<String, Map<String, Object>> config) {
+        config.logging = [
+                rootLevel: Level.WARN.levelStr,
+                loggers: [
+                        "foo": Level.INFO.levelStr,
+                        "bar.baz": Level.ERROR.levelStr
+                ],
+                console: [
+                        threshold: Level.DEBUG.levelStr,
+                        timeZone: "GMT+10",
+                        logFormat: "[%d{ISO8601}] %m%n"]]
+        config.logging
+    }
+
 }
