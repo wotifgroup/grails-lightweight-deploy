@@ -6,17 +6,21 @@ import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
 import com.codahale.metrics.jetty8.InstrumentedHandler;
 import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
 import com.codahale.metrics.servlets.AdminServlet;
+import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.GzipHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -187,7 +191,22 @@ public class Launcher {
 
         configureExternalServlets(handler);
 
-        return new InstrumentedHandler(metricsRegistry, handler);
+        // Instrument our handler
+        final Handler instrumented = new InstrumentedHandler(metricsRegistry, handler);
+
+        // And support GZip responses
+        final GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setBufferSize(8 * 1024);
+        gzipHandler.setExcluded(ImmutableSet.<String>of());
+        gzipHandler.setHandler(instrumented);
+        gzipHandler.setMinGzipSize(256);
+        gzipHandler.setMimeTypes(ImmutableSet.of(
+                "application/json", "application/xml", "text/html", "text/plain", "application/javascript",
+                "text/javascript", "text/css", "text/xml"
+        ));
+        gzipHandler.setVary(HttpHeaders.ACCEPT_ENCODING);
+
+        return gzipHandler;
     }
 
     private static String[] getConnectorNames(Server server) {
