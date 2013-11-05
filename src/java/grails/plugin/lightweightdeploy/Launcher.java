@@ -47,10 +47,15 @@ public class Launcher {
     /**
      * Start the server.
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         verifyArgs(args);
         final Launcher launcher = new Launcher(args[0]);
-        launcher.start();
+        try {
+            launcher.start();
+        } catch (Exception e) {
+            System.exit(1);
+            throw e;
+        }
     }
 
     public Launcher(String configYmlPath) throws IOException {
@@ -86,7 +91,7 @@ public class Launcher {
         }
     }
 
-    protected void start() throws IOException {
+    protected void start() throws Exception {
         War war = new War(this.configuration.getWorkDir());
 
         Server server = configureJetty(war);
@@ -157,13 +162,13 @@ public class Launcher {
         return createInternalContext(server);
     }
 
-    protected void startJetty(Server server) {
+    protected void startJetty(Server server) throws Exception {
         try {
             server.start();
             logger.info("Startup complete. Server running on " + this.configuration.getPort());
         } catch (Exception e) {
             logger.error("Error starting jetty. Exiting JVM.", e);
-            System.exit(1);
+            server.stop();
         }
     }
 
