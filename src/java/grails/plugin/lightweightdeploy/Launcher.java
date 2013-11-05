@@ -3,6 +3,7 @@ package grails.plugin.lightweightdeploy;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
+import com.codahale.metrics.jetty8.InstrumentedHandler;
 import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
 import com.codahale.metrics.servlets.AdminServlet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
@@ -186,7 +187,7 @@ public class Launcher {
 
         configureExternalServlets(handler);
 
-        return handler;
+        return new InstrumentedHandler(metricsRegistry, handler);
     }
 
     private static String[] getConnectorNames(Server server) {
