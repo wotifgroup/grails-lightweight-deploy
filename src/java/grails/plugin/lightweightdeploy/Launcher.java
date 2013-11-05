@@ -3,18 +3,25 @@ package grails.plugin.lightweightdeploy;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
+import com.codahale.metrics.jetty8.InstrumentedHandler;
+import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
 import com.codahale.metrics.servlets.AdminServlet;
+import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.GzipHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +47,15 @@ public class Launcher {
     /**
      * Start the server.
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         verifyArgs(args);
         final Launcher launcher = new Launcher(args[0]);
-        launcher.start();
+        try {
+            launcher.start();
+        } catch (Exception e) {
+            System.exit(1);
+            throw e;
+        }
     }
 
     public Launcher(String configYmlPath) throws IOException {
@@ -79,7 +91,7 @@ public class Launcher {
         }
     }
 
-    protected void start() throws IOException {
+    protected void start() throws Exception {
         War war = new War(this.configuration.getWorkDir());
 
         Server server = configureJetty(war);
@@ -90,7 +102,7 @@ public class Launcher {
     protected Server configureJetty(War war) throws IOException {
         System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
 
-        Server server = new Server();
+        final Server server = createServer();
 
         HandlerCollection handlerCollection = new HandlerCollection();
         handlerCollection.addHandler(configureExternal(server, war));
@@ -107,6 +119,23 @@ public class Launcher {
             JmxServer jmxServer = new JmxServer(this.configuration.getJmxConfiguration());
             jmxServer.start();
         }
+
+        return server;
+    }
+
+    protected Server createServer() {
+        final Server server = new Server();
+
+        // Add our the instrumented thread pool
+        server.setThreadPool(createThreadPool());
+
+        // Don't send Date and Server headers
+        server.setSendDateHeader(false);
+        server.setSendServerVersion(false);
+
+        // Allow a grace period during shutdown
+        server.setStopAtShutdown(true);
+        server.setGracefulShutdown(2000);
 
         return server;
     }
@@ -133,13 +162,13 @@ public class Launcher {
         return createInternalContext(server);
     }
 
-    protected void startJetty(Server server) {
+    protected void startJetty(Server server) throws Exception {
         try {
             server.start();
             logger.info("Startup complete. Server running on " + this.configuration.getPort());
         } catch (Exception e) {
             logger.error("Error starting jetty. Exiting JVM.", e);
-            System.exit(1);
+            server.stop();
         }
     }
 
@@ -167,7 +196,22 @@ public class Launcher {
 
         configureExternalServlets(handler);
 
-        return handler;
+        // Instrument our handler
+        final Handler instrumented = new InstrumentedHandler(metricsRegistry, handler);
+
+        // And support GZip responses
+        final GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setBufferSize(8 * 1024);
+        gzipHandler.setExcluded(ImmutableSet.<String>of());
+        gzipHandler.setHandler(instrumented);
+        gzipHandler.setMinGzipSize(256);
+        gzipHandler.setMimeTypes(ImmutableSet.of(
+                "application/json", "application/xml", "text/html", "text/plain", "application/javascript",
+                "text/javascript", "text/css", "text/xml"
+        ));
+        gzipHandler.setVary(HttpHeaders.ACCEPT_ENCODING);
+
+        return gzipHandler;
     }
 
     private static String[] getConnectorNames(Server server) {
@@ -194,6 +238,13 @@ public class Launcher {
         if (args.length < 1) {
             throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
         }
+    }
+
+    protected ThreadPool createThreadPool() {
+        final InstrumentedQueuedThreadPool pool = new InstrumentedQueuedThreadPool(metricsRegistry);
+        pool.setMinThreads(8);
+        pool.setMaxThreads(1024);
+        return pool;
     }
 
 }

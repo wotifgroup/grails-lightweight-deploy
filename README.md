@@ -114,7 +114,7 @@ logging:
         # the timezone to print dates in (defaults to TimeZone.getDefault())
         timeZone: GMT+10
         # the threshold over which log statements must be before being logged.
-        loggingThreshold: ALL
+        threshold: ALL
         # the format for the console log
         logFormat: "%-5p [%d{ISO8601,GMT+10}] [%-30thread] %c: %m%n%xEx"
 
