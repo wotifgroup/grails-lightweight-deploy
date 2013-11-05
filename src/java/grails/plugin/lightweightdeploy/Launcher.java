@@ -3,6 +3,7 @@ package grails.plugin.lightweightdeploy;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
+import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
 import com.codahale.metrics.servlets.AdminServlet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
@@ -15,6 +16,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +92,7 @@ public class Launcher {
     protected Server configureJetty(War war) throws IOException {
         System.setProperty("org.eclipse.jetty.xml.XmlParser.NotValidating", "true");
 
-        Server server = new Server();
+        final Server server = createServer();
 
         HandlerCollection handlerCollection = new HandlerCollection();
         handlerCollection.addHandler(configureExternal(server, war));
@@ -107,6 +109,23 @@ public class Launcher {
             JmxServer jmxServer = new JmxServer(this.configuration.getJmxConfiguration());
             jmxServer.start();
         }
+
+        return server;
+    }
+
+    protected Server createServer() {
+        final Server server = new Server();
+
+        // Add our the instrumented thread pool
+        server.setThreadPool(createThreadPool());
+
+        // Don't send Date and Server headers
+        server.setSendDateHeader(false);
+        server.setSendServerVersion(false);
+
+        // Allow a grace period during shutdown
+        server.setStopAtShutdown(true);
+        server.setGracefulShutdown(2000);
 
         return server;
     }
@@ -194,6 +213,13 @@ public class Launcher {
         if (args.length < 1) {
             throw new IllegalArgumentException("Requires 1 argument, which is the path to the config.yml file");
         }
+    }
+
+    protected ThreadPool createThreadPool() {
+        final InstrumentedQueuedThreadPool pool = new InstrumentedQueuedThreadPool(metricsRegistry);
+        pool.setMinThreads(8);
+        pool.setMaxThreads(1024);
+        return pool;
     }
 
 }
