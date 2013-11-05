@@ -22,6 +22,13 @@ public abstract class AbstractConnectorFactory {
         connector.setRequestHeaderSize(6 * 1024);
         connector.setResponseBufferSize(32 * 1024);
         connector.setResponseHeaderSize(6 * 1024);
+
+        // Use X-Forwarded-For header for origin IP
+        connector.setForwarded(true);
+
+        // allow socket reuse
+        connector.setReuseAddress(true);
+
     }
 
     protected Configuration getConfiguration() {

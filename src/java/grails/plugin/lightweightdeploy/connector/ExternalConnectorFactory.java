@@ -60,12 +60,6 @@ public class ExternalConnectorFactory extends AbstractConnectorFactory {
         connector.setName(EXTERNAL_HTTP_CONNECTOR_NAME);
         connector.setUseDirectBuffers(true);
 
-        // Use X-Forwarded-For header for origin IP
-        connector.setForwarded(true);
-
-        // allow socket reuse
-        connector.setReuseAddress(true);
-
         return connector;
     }
 
