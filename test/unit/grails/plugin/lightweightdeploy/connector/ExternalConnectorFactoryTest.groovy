@@ -64,6 +64,26 @@ class ExternalConnectorFactoryTest {
     }
 
     @Test
+    void httpXForwardedForHeaderShouldAlwaysBeSet() {
+        assertTrue(getSingleConnector(defaultConfig(false)).forwarded)
+    }
+
+    @Test
+    void httpsXForwardedForHeaderShouldAlwaysBeSet() {
+        assertTrue(getSingleConnector(defaultConfig(true)).forwarded)
+    }
+
+    @Test
+    void httpSocketReuseShouldAlwaysBeSet() {
+        assertTrue(getSingleConnector(defaultConfig(false)).reuseAddress)
+    }
+
+    @Test
+    void httpsSocketReuseShouldAlwaysBeSet() {
+        assertTrue(getSingleConnector(defaultConfig(true)).reuseAddress)
+    }
+
+    @Test
     void sslShouldHaveSslPropertiesSet() {
         SslSocketConnector connector = (SslSocketConnector) getSingleConnector(defaultConfig(true))
         assertEquals("app.domain.com", connector.getSslContextFactory().getCertAlias())
