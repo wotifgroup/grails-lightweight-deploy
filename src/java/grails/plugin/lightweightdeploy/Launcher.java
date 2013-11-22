@@ -207,7 +207,7 @@ public class Launcher {
         gzipHandler.setMinGzipSize(256);
         gzipHandler.setMimeTypes(ImmutableSet.of(
                 "application/json", "application/xml", "text/html", "text/plain", "application/javascript",
-                "text/javascript", "text/css", "text/xml"
+                "application/x-javascript", "text/javascript", "text/css", "text/xml"
         ));
         gzipHandler.setVary(HttpHeaders.ACCEPT_ENCODING);
 
