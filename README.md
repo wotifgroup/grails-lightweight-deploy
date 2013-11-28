@@ -79,7 +79,7 @@ http:
     #The minimum number of threads to keep active to serve requests
     minThreads: 8
     #The maximum number of threads to keep active to serve requests
-    minThreads: 128
+    maxThreads: 128
     #If this block is specified, then the app will run over https (see port property for running in mixed mode)
     ssl:
         #The path to the keystore which will be used to encrypt traffic over SSL on the port.
