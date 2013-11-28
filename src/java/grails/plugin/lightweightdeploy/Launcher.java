@@ -5,6 +5,10 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
 import com.codahale.metrics.jetty8.InstrumentedHandler;
 import com.codahale.metrics.jetty8.InstrumentedQueuedThreadPool;
+import com.codahale.metrics.jvm.BufferPoolMetricSet;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
@@ -27,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 
 /**
  * Based heavily on code from Burt Beckwith's standalone plugin and Codehale's Dropwizard.
@@ -66,7 +71,7 @@ public class Launcher {
         this.configuration = configuration;
         logger.info("Using configuration: " + this.configuration);
 
-        this.metricsRegistry = new MetricRegistry();
+        this.metricsRegistry = configureMetricRegistry();
         this.healthCheckRegistry = new HealthCheckRegistry();
 
         configureLogging();
@@ -82,6 +87,15 @@ public class Launcher {
 
     public MetricRegistry getMetricsRegistry() {
         return metricsRegistry;
+    }
+
+    protected MetricRegistry configureMetricRegistry() {
+        final MetricRegistry metricRegistry = new MetricRegistry();
+        metricRegistry.register("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+        metricRegistry.register("jvm.gc", new GarbageCollectorMetricSet());
+        metricRegistry.register("jvm.memory", new MemoryUsageGaugeSet());
+        metricRegistry.register("jvm.threads", new ThreadStatesGaugeSet());
+        return metricRegistry;
     }
 
     protected void configureLogging() {
