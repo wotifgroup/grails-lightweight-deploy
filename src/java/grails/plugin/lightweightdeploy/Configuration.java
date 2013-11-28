@@ -1,5 +1,6 @@
 package grails.plugin.lightweightdeploy;
 
+import grails.plugin.lightweightdeploy.connector.HttpConfiguration;
 import grails.plugin.lightweightdeploy.connector.SslConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
 import grails.plugin.lightweightdeploy.logging.LoggingConfiguration;
@@ -15,15 +16,12 @@ import java.util.Map;
  */
 public class Configuration {
 
-    private Integer port;
+    private HttpConfiguration httpConfiguration;
     private SslConfiguration sslConfiguration;
-    private Integer adminPort;
     private LoggingConfiguration serverLogConfiguration;
     private LoggingConfiguration requestLogConfiguration;
     private File workDir;
     private JmxConfiguration jmxConfiguration;
-    private int minThreads = 8;
-    private int maxThreads = 128;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -43,23 +41,7 @@ public class Configuration {
     protected void initHttp(Map<String, ?> config) throws IOException {
         Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
 
-        this.port = (Integer) httpConfig.get("port");
-        if (httpConfig.containsKey("ssl")) {
-            Map<String, ?> sslConfig = (Map<String, ?>) httpConfig.get("ssl");
-            this.sslConfiguration = new SslConfiguration(sslConfig);
-        }
-
-        this.adminPort = null;
-        if (httpConfig.containsKey("adminPort")) {
-            this.adminPort = (Integer) httpConfig.get("adminPort");
-        }
-
-        if (httpConfig.containsKey("minThreads")) {
-            this.minThreads = (Integer) httpConfig.get("minThreads");
-        }
-        if (httpConfig.containsKey("maxThreads")) {
-            this.maxThreads = (Integer) httpConfig.get("maxThreads");
-        }
+        this.httpConfiguration = new HttpConfiguration(httpConfig);
     }
 
     protected void initJmx(Map<String, ?> config) {
@@ -101,28 +83,12 @@ public class Configuration {
         }
     }
 
-    public Integer getPort() {
-        return port;
-    }
-
-    public Integer getAdminPort() {
-        return adminPort;
+    public HttpConfiguration getHttpConfiguration() {
+        return httpConfiguration;
     }
 
     public JmxConfiguration getJmxConfiguration() {
         return jmxConfiguration;
-    }
-
-    public int getMaxThreads() {
-        return maxThreads;
-    }
-
-    public int getMinThreads() {
-        return minThreads;
-    }
-
-    public boolean hasAdminPort() {
-        return getAdminPort() != null;
     }
 
     public boolean isJmxEnabled() {
@@ -135,18 +101,6 @@ public class Configuration {
 
     public boolean isServerLoggingEnabled() {
         return (this.serverLogConfiguration != null);
-    }
-
-    public boolean isMixedMode() {
-        return isSsl() && sslConfiguration.getPort() != null && sslConfiguration.getPort() != port;
-    }
-
-    public boolean isSsl() {
-        return (this.sslConfiguration != null);
-    }
-
-    public SslConfiguration getSslConfiguration() {
-        return sslConfiguration;
     }
 
     public LoggingConfiguration getServerLogConfiguration() {
@@ -164,9 +118,9 @@ public class Configuration {
     @Override
     public String toString() {
         return "Configuration{" +
-                "port=" + port +
-                ", adminPort=" + adminPort +
-                ", ssl=" + isSsl() +
+                "port=" + httpConfiguration.getPort() +
+                ", adminPort=" + httpConfiguration.getAdminPort() +
+                ", ssl=" + httpConfiguration.isSsl() +
                 '}';
     }
 
