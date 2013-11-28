@@ -141,6 +141,9 @@ resolveJars = { ->
                 "com.codahale.metrics:metrics-servlet:3.0.1",
                 "com.codahale.metrics:metrics-servlets:3.0.1",
                 "com.codahale.metrics:metrics-jetty8:3.0.1",
+                "com.codahale.metrics:metrics-healthchecks:3.0.1",
+                "com.codahale.metrics:metrics-jvm:3.0.1",
+                "com.codahale.metrics:metrics-json:3.0.1",
                 "org.slf4j:slf4j-api:1.7.4",
                 "org.slf4j:jul-to-slf4j:1.7.4",
                 "ch.qos.logback:logback-classic:1.0.13"]
