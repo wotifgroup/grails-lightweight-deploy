@@ -22,6 +22,8 @@ public class Configuration {
     private LoggingConfiguration requestLogConfiguration;
     private File workDir;
     private JmxConfiguration jmxConfiguration;
+    private int minThreads = 8;
+    private int maxThreads = 128;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -50,6 +52,13 @@ public class Configuration {
         this.adminPort = null;
         if (httpConfig.containsKey("adminPort")) {
             this.adminPort = (Integer) httpConfig.get("adminPort");
+        }
+
+        if (httpConfig.containsKey("minThreads")) {
+            this.minThreads = (Integer) httpConfig.get("minThreads");
+        }
+        if (httpConfig.containsKey("maxThreads")) {
+            this.maxThreads = (Integer) httpConfig.get("maxThreads");
         }
     }
 
@@ -102,6 +111,14 @@ public class Configuration {
 
     public JmxConfiguration getJmxConfiguration() {
         return jmxConfiguration;
+    }
+
+    public int getMaxThreads() {
+        return maxThreads;
+    }
+
+    public int getMinThreads() {
+        return minThreads;
     }
 
     public boolean hasAdminPort() {

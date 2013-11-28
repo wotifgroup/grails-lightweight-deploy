@@ -76,6 +76,10 @@ http:
     port: 8080
     #A secondary port which will serve your administrative content. This should be firewalled off from external access. Check http://localhost:8048/ for what it provides.
     adminPort: 8048
+    #The minimum number of threads to keep active to serve requests
+    minThreads: 8
+    #The maximum number of threads to keep active to serve requests
+    minThreads: 128
     #If this block is specified, then the app will run over https (see port property for running in mixed mode)
     ssl:
         #The path to the keystore which will be used to encrypt traffic over SSL on the port.

@@ -242,8 +242,8 @@ public class Launcher {
 
     protected ThreadPool createThreadPool() {
         final InstrumentedQueuedThreadPool pool = new InstrumentedQueuedThreadPool(metricsRegistry);
-        pool.setMinThreads(8);
-        pool.setMaxThreads(128);
+        pool.setMinThreads(this.configuration.getMinThreads());
+        pool.setMaxThreads(this.configuration.getMaxThreads());
         return pool;
     }
 

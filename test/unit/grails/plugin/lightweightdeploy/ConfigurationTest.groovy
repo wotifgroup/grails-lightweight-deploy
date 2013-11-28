@@ -307,6 +307,34 @@ public class ConfigurationTest {
         new Configuration(config)
     }
 
+    @Test
+    void minThreadsShouldDefault() {
+        Configuration configuration = new Configuration(defaultConfig())
+        assertEquals(8, configuration.minThreads)
+    }
+
+    @Test
+    void maxThreadsShouldDefault() {
+        Configuration configuration = new Configuration(defaultConfig())
+        assertEquals(128, configuration.maxThreads)
+    }
+
+    @Test
+    void minThreadsShouldBeSetIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        config.http.minThreads = 1000
+        Configuration configuration = new Configuration(config)
+        assertEquals(1000, configuration.minThreads)
+    }
+
+    @Test
+    void maxThreadsShouldBeSetIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        config.http.maxThreads = 10000
+        Configuration configuration = new Configuration(config)
+        assertEquals(10000, configuration.maxThreads)
+    }
+
     protected Map<String, Map<String, Object>> defaultConfig() {
         [http: [port: 1234,
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
