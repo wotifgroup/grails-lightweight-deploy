@@ -157,7 +157,7 @@ public class Launcher {
     protected Handler configureExternal(Server server, War war) throws IOException {
         logger.info("Configuring external connector(s)");
 
-        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration, metricsRegistry);
+        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration.getHttpConfiguration(), metricsRegistry);
         for (AbstractConnector externalConnector : connectorFactory.build()) {
             server.addConnector(externalConnector);
         }
@@ -168,7 +168,7 @@ public class Launcher {
     protected Handler configureInternal(Server server) {
         logger.info("Configuring admin connector");
 
-        final InternalConnectorFactory connectorFactory = new InternalConnectorFactory(getConfiguration());
+        final InternalConnectorFactory connectorFactory = new InternalConnectorFactory(getConfiguration().getHttpConfiguration());
         for (AbstractConnector externalConnector : connectorFactory.build()) {
             server.addConnector(externalConnector);
         }
