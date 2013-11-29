@@ -30,12 +30,12 @@ class InternalConnectorFactoryTest {
     }
 
     private Set<? extends AbstractConnector> getConnectors(Configuration config) {
-        new InternalConnectorFactory(config).build()
+        new InternalConnectorFactory(config.httpConfiguration).build()
     }
 
 
     private Configuration defaultConfig() {
-        new Configuration([http: [adminPort: 1234]])
+        new Configuration([http: [port: 8080, adminPort: 1234]])
     }
 
 }

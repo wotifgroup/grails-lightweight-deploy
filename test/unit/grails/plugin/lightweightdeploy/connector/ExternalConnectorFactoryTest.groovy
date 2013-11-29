@@ -105,7 +105,7 @@ class ExternalConnectorFactoryTest {
     }
 
     private Set<? extends AbstractConnector> getConnectors(Configuration config) {
-        new ExternalConnectorFactory(config, new MetricRegistry()).build()
+        new ExternalConnectorFactory(config.httpConfiguration, new MetricRegistry()).build()
     }
 
     protected Configuration defaultConfig(boolean isSsl, boolean isMixedMode = false) {
