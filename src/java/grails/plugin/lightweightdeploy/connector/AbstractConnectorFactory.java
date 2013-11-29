@@ -7,31 +7,32 @@ import java.util.Set;
 
 public abstract class AbstractConnectorFactory {
 
-    private Configuration configuration;
+    private HttpConfiguration configuration;
 
-    public AbstractConnectorFactory(Configuration configuration) {
+    public AbstractConnectorFactory(HttpConfiguration configuration) {
         this.configuration = configuration;
     }
 
     public abstract Set<? extends AbstractConnector> build();
 
-    protected void defaultValues(AbstractConnector connector) {
-        connector.setMaxIdleTime(200 * 1000);
-        connector.setLowResourcesMaxIdleTime(0);
-        connector.setRequestBufferSize(16 * 1024);
-        connector.setRequestHeaderSize(6 * 1024);
-        connector.setResponseBufferSize(32 * 1024);
-        connector.setResponseHeaderSize(6 * 1024);
+    protected void applyConfiguration(AbstractConnector connector) {
+        connector.setAcceptorPriorityOffset(configuration.getAcceptorThreadPriorityOffset());
+        connector.setAcceptors(configuration.getAcceptorThreads());
+        connector.setAcceptQueueSize(configuration.getAcceptQueueSize());
+        connector.setLowResourcesMaxIdleTime(configuration.getLowResourcesMaxIdleTime());
+        connector.setMaxBuffers(configuration.getMaxBufferCount());
+        connector.setMaxIdleTime(configuration.getMaxIdleTime());
+        connector.setRequestBufferSize(configuration.getRequestBufferSize());
+        connector.setRequestHeaderSize(configuration.getRequestHeaderBufferSize());
+        connector.setResponseBufferSize(configuration.getResponseBufferSize());
+        connector.setResponseHeaderSize(configuration.getResponseHeaderBufferSize());
+        connector.setReuseAddress(configuration.isReuseAddress());
 
         // Use X-Forwarded-For header for origin IP
         connector.setForwarded(true);
-
-        // allow socket reuse
-        connector.setReuseAddress(true);
-
     }
 
-    protected Configuration getConfiguration() {
+    protected HttpConfiguration getConfiguration() {
         return configuration;
     }
 

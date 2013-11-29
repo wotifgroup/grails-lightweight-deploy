@@ -13,7 +13,7 @@ public class InternalConnectorFactory extends AbstractConnectorFactory {
 
     public static final String INTERNAL_CONNECTOR_NAME = "internal";
 
-    public InternalConnectorFactory(Configuration configuration) {
+    public InternalConnectorFactory(HttpConfiguration configuration) {
         super(configuration);
     }
 

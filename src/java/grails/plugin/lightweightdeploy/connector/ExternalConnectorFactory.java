@@ -2,11 +2,8 @@ package grails.plugin.lightweightdeploy.connector;
 
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jetty8.InstrumentedSelectChannelConnector;
 import com.codahale.metrics.jetty8.InstrumentedSslSocketConnector;
-import grails.plugin.lightweightdeploy.Configuration;
-import grails.plugin.lightweightdeploy.Launcher;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
@@ -24,7 +21,7 @@ public class ExternalConnectorFactory extends AbstractConnectorFactory {
 
     private MetricRegistry metricRegistry;
 
-    public ExternalConnectorFactory(Configuration configuration, MetricRegistry metricRegistry) {
+    public ExternalConnectorFactory(HttpConfiguration configuration, MetricRegistry metricRegistry) {
         super(configuration);
         this.metricRegistry = metricRegistry;
     }
@@ -42,9 +39,9 @@ public class ExternalConnectorFactory extends AbstractConnectorFactory {
             connectors.add(configureExternalHttpConnector());
         }
 
-        // apply the default values to each connector
+        // apply the configured values to each connector
         for (AbstractConnector connector : connectors) {
-            defaultValues(connector);
+            applyConfiguration(connector);
         }
 
         return connectors;

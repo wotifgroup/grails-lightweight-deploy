@@ -120,7 +120,7 @@ public class Launcher {
 
         HandlerCollection handlerCollection = new HandlerCollection();
         handlerCollection.addHandler(configureExternal(server, war));
-        if (this.configuration.hasAdminPort()) {
+        if (this.configuration.getHttpConfiguration().hasAdminPort()) {
             handlerCollection.addHandler(configureInternal(server));
         }
         if (this.configuration.isRequestLoggingEnabled()) {
@@ -179,7 +179,7 @@ public class Launcher {
     protected void startJetty(Server server) throws Exception {
         try {
             server.start();
-            logger.info("Startup complete. Server running on " + this.configuration.getPort());
+            logger.info("Startup complete. Server running on " + this.configuration.getHttpConfiguration().getPort());
         } catch (Exception e) {
             logger.error("Error starting jetty. Exiting JVM.", e);
             server.stop();
@@ -256,8 +256,8 @@ public class Launcher {
 
     protected ThreadPool createThreadPool() {
         final InstrumentedQueuedThreadPool pool = new InstrumentedQueuedThreadPool(metricsRegistry);
-        pool.setMinThreads(this.configuration.getMinThreads());
-        pool.setMaxThreads(this.configuration.getMaxThreads());
+        pool.setMinThreads(this.configuration.getHttpConfiguration().getMinThreads());
+        pool.setMaxThreads(this.configuration.getHttpConfiguration().getMaxThreads());
         return pool;
     }
 
