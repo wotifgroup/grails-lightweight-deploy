@@ -1,15 +1,13 @@
 package grails.plugin.lightweightdeploy;
 
 import grails.plugin.lightweightdeploy.connector.HttpConfiguration;
-import grails.plugin.lightweightdeploy.connector.SslConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
 import grails.plugin.lightweightdeploy.logging.LoggingConfiguration;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Stores the configuration for the jetty server
@@ -17,7 +15,6 @@ import java.util.Map;
 public class Configuration {
 
     private HttpConfiguration httpConfiguration;
-    private SslConfiguration sslConfiguration;
     private LoggingConfiguration serverLogConfiguration;
     private LoggingConfiguration requestLogConfiguration;
     private File workDir;

@@ -12,37 +12,37 @@ public class ConfigurationTest {
         Map<String, ? extends Object> config = defaultConfig()
         config.http.remove("ssl")
         Configuration configuration = new Configuration(config)
-        assertEquals(1234, configuration.getPort().intValue())
-        assertFalse(configuration.isSsl())
+        assertEquals(1234, configuration.httpConfiguration.port.intValue())
+        assertFalse(configuration.httpConfiguration.isSsl())
     }
 
     @Test
     void shouldAssumeHttpsIfSslBlock() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals(1234, configuration.getPort().intValue())
-        assertTrue(configuration.isSsl())
+        assertEquals(1234, configuration.httpConfiguration.port.intValue())
+        assertTrue(configuration.httpConfiguration.isSsl())
     }
 
     @Test
     void shouldSetKeystoreAliasFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("app.domain.com", configuration.sslConfiguration.keyStoreAlias)
+        assertEquals("app.domain.com", configuration.httpConfiguration.sslConfiguration.keyStoreAlias)
     }
 
     @Test
     void shouldSetKeystorePathFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("/etc/pki/tls/jks/test.jks", configuration.sslConfiguration.keyStorePath)
+        assertEquals("/etc/pki/tls/jks/test.jks", configuration.httpConfiguration.sslConfiguration.keyStorePath)
     }
 
     @Test
     void shouldSetKeystorePasswordFromConfig() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         Configuration configuration = new Configuration(config)
-        assertEquals("password", configuration.sslConfiguration.keyStorePassword)
+        assertEquals("password", configuration.httpConfiguration.sslConfiguration.keyStorePassword)
     }
 
     @Test
@@ -310,13 +310,13 @@ public class ConfigurationTest {
     @Test
     void minThreadsShouldDefault() {
         Configuration configuration = new Configuration(defaultConfig())
-        assertEquals(8, configuration.minThreads)
+        assertEquals(8, configuration.httpConfiguration.minThreads)
     }
 
     @Test
     void maxThreadsShouldDefault() {
         Configuration configuration = new Configuration(defaultConfig())
-        assertEquals(128, configuration.maxThreads)
+        assertEquals(128, configuration.httpConfiguration.maxThreads)
     }
 
     @Test
@@ -324,7 +324,7 @@ public class ConfigurationTest {
         Map<String, ? extends Object> config = defaultConfig()
         config.http.minThreads = 1000
         Configuration configuration = new Configuration(config)
-        assertEquals(1000, configuration.minThreads)
+        assertEquals(1000, configuration.httpConfiguration.minThreads)
     }
 
     @Test
@@ -332,7 +332,7 @@ public class ConfigurationTest {
         Map<String, ? extends Object> config = defaultConfig()
         config.http.maxThreads = 10000
         Configuration configuration = new Configuration(config)
-        assertEquals(10000, configuration.maxThreads)
+        assertEquals(10000, configuration.httpConfiguration.maxThreads)
     }
 
     protected Map<String, Map<String, Object>> defaultConfig() {

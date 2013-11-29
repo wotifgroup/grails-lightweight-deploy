@@ -18,7 +18,7 @@ public class HttpConfiguration {
 
     private int port = 8080;
 
-    private Integer adminPort;
+    private int adminPort = 8081;
 
     private int minThreads = 8;
 
@@ -66,7 +66,7 @@ public class HttpConfiguration {
         this.responseBufferSize = Objects.firstNonNull((Integer) httpConfig.get("responseBufferSize"), responseBufferSize);
         this.responseHeaderBufferSize = Objects.firstNonNull((Integer) httpConfig.get("responseHeaderBufferSize"), responseHeaderBufferSize);
         this.reuseAddress = Objects.firstNonNull((Boolean) httpConfig.get("reuseAddress"), reuseAddress);
-        this.soLingerTime = Objects.firstNonNull((Integer) httpConfig.get("soLingerTime"), soLingerTime);
+        this.soLingerTime = (Integer) httpConfig.get("soLingerTime");
         this.lowResourcesMaxIdleTime = Objects.firstNonNull((Integer) httpConfig.get("lowResourcesMaxIdleTime"), lowResourcesMaxIdleTime);
 
         if (httpConfig.containsKey("ssl")) {
