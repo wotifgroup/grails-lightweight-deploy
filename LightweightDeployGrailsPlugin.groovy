@@ -13,7 +13,10 @@ This plugin uses some code from both the standalone plugin by Burt Beckwith and 
 
     def license = "APACHE"
 
-    def developers = [ [ name: "Adam Harwood", email: "adamtroyh@gmail.com" ]]
+    def developers = [
+        [ name: "Adam Harwood", email: "adamtroyh@gmail.com" ],
+        [ name: "Pete Capra", email: "petey.caps@gmail.com" ]
+    ]
 
     def issueManagement = [ system: "github", url: "https://github.com/aharwood/grails-lightweight-deploy" ]
 
