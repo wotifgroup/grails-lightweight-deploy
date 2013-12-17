@@ -11,7 +11,9 @@ import java.io.InputStream;
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 
+import grails.plugin.lightweightdeploy.servlets.ThreadNameFilter;
 import grails.plugin.lightweightdeploy.servlets.RequestAndAccessCorrelationFilter;
+
 import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.webapp.TagLibConfiguration;
@@ -33,9 +35,9 @@ public class ExternalContext extends WebAppContext {
         setAttribute(HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE, healthCheckRegistry);
 
         setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, metricsRegistry);
-        addFilter(InstrumentedFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-
+        addFilter(ThreadNameFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         addFilter(RequestAndAccessCorrelationFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+        addFilter(InstrumentedFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
         setConfigurations(new org.eclipse.jetty.webapp.Configuration[]{new WebInfConfiguration(),
                                                                        new WebXmlConfiguration(),

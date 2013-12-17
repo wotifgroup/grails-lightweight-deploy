@@ -17,7 +17,8 @@ class ExternalContextTest {
 
     @Test
     void defaultsDescriptorShouldBeSet() {
-        assertTrue(externalContext.defaultsDescriptor.matches("/tmp/webdefault[0-9]+?\\.war"))
+        def tmpDir = System.getProperty("java.io.tmpdir");
+        assertTrue(externalContext.defaultsDescriptor.matches(tmpDir + "webdefault[0-9]+?\\.war"))
     }
 
     @Test
