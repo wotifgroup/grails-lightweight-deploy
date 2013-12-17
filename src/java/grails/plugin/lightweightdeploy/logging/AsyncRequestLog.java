@@ -21,6 +21,7 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.slf4j.MDC;
 
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
@@ -179,6 +180,9 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
 
         buf.append(' ');
         buf.append(now - request.getTimeStamp());
+
+        buf.append(' ');
+        buf.append(request.getAttribute("requestId"));
 
         queue.add(buf.toString());
     }
