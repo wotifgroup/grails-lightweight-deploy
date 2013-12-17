@@ -172,6 +172,24 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
             buf.append(" -");
         }
 
+        String referer = request.getHeader(HttpHeaders.REFERER);
+        if (referer == null) {
+            buf.append("\"-\" ");
+        } else {
+            buf.append('"');
+            buf.append(referer);
+            buf.append("\" ");
+        }
+
+        String agent = request.getHeader(HttpHeaders.USER_AGENT);
+        if (agent == null) {
+            buf.append("\"-\" ");
+        } else {
+            buf.append('"');
+            buf.append(agent);
+            buf.append('"');
+        }
+
         final long now = clock.getTime();
         final long dispatchTime = request.getDispatchTime();
 
