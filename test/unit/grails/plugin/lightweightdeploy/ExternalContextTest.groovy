@@ -18,7 +18,9 @@ class ExternalContextTest {
     @Test
     void defaultsDescriptorShouldBeSet() {
         def tmpDir = System.getProperty("java.io.tmpdir");
-        assertTrue("Failed to match " + externalContext.defaultsDescriptor, externalContext.defaultsDescriptor.matches(tmpDir + "webdefault[0-9]+?\\.war"))
+        def expectedPattern = new File(tmpDir, "webdefault[0-9]+?\\.war").getAbsolutePath()
+        def actual = externalContext.defaultsDescriptor
+        assertTrue("Path match failed " + expectedPattern + " actual " + actual, actual.matches(expectedPattern))
     }
 
     @Test
