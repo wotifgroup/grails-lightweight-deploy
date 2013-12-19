@@ -1,6 +1,8 @@
 grails.project.class.dir = "target/classes"
 grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
+grails.project.source.level = "1.7"
+grails.project.target.level = "1.7"
 
 grails.project.dependency.resolution = {
     inherits("global") {
@@ -36,6 +38,9 @@ grails.project.dependency.resolution = {
 		compile ('org.eclipse.jetty.aggregate:jetty-all:8.1.11.v20130520') {
             exclude 'javax.servlet'
 		}
+
+        test "org.mockito:mockito-all:1.9.5",
+             "org.easytesting:fest-assert-core:2.0M10"
     }
 
     plugins {
