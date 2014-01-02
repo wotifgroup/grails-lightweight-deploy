@@ -1,5 +1,6 @@
 package grails.plugin.lightweightdeploy;
 
+import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
@@ -95,6 +96,11 @@ public class Launcher {
         metricRegistry.register("jvm.gc", new GarbageCollectorMetricSet());
         metricRegistry.register("jvm.memory", new MemoryUsageGaugeSet());
         metricRegistry.register("jvm.threads", new ThreadStatesGaugeSet());
+
+        if (getConfiguration().isJmxEnabled()) {
+            JmxReporter.forRegistry(metricRegistry).build().start();
+        }
+
         return metricRegistry;
     }
 
