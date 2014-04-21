@@ -48,6 +48,8 @@ public class HttpConfiguration {
 
     private int lowResourcesMaxIdleTime = 0;
 
+    private SessionsConfiguration sessionsConfiguration = new SessionsConfiguration();
+
     private SslConfiguration sslConfiguration;
 
     public HttpConfiguration(final Map<String, ?> httpConfig) throws IOException {
@@ -68,6 +70,10 @@ public class HttpConfiguration {
         this.reuseAddress = Objects.firstNonNull((Boolean) httpConfig.get("reuseAddress"), reuseAddress);
         this.soLingerTime = (Integer) httpConfig.get("soLingerTime");
         this.lowResourcesMaxIdleTime = Objects.firstNonNull((Integer) httpConfig.get("lowResourcesMaxIdleTime"), lowResourcesMaxIdleTime);
+
+        if (httpConfig.containsKey("sessions")) {
+            this.sessionsConfiguration = new SessionsConfiguration((Map<String, ?>) httpConfig.get("sessions"));
+        }
 
         if (httpConfig.containsKey("ssl")) {
             Map<String, ?> sslConfig = (Map<String, ?>) httpConfig.get("ssl");
@@ -153,6 +159,10 @@ public class HttpConfiguration {
 
     public boolean isSsl() {
         return (getSslConfiguration() != null);
+    }
+
+    public SessionsConfiguration getSessionsConfiguration() {
+        return sessionsConfiguration;
     }
 
 }

@@ -72,6 +72,23 @@ public class HttpConfigurationTest {
         assertEquals(10000, configuration.maxThreads)
     }
 
+    @Test
+    void sessionsEnabledByDefault() {
+        Map<String, ? extends Object> config = defaultConfig()
+        HttpConfiguration configuration = new HttpConfiguration(config)
+        assertTrue(configuration.sessionsConfiguration.enabled);
+        assertEquals("", configuration.sessionsConfiguration.workerName);
+    }
+
+    @Test
+    void sessionsWorkerNameShouldBeSetIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        config.sessions = [enabled: true, workerName: "workerName"];
+        HttpConfiguration configuration = new HttpConfiguration(config)
+        assertTrue(configuration.sessionsConfiguration.enabled);
+        assertEquals("workerName", configuration.sessionsConfiguration.workerName);
+    }
+
     protected Map<String, Map<String, Object>> defaultConfig() {
         [port: 1234,
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
