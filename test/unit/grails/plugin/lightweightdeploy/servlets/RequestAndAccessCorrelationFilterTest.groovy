@@ -1,53 +1,73 @@
 package grails.plugin.lightweightdeploy.servlets
 
-import org.codehaus.groovy.grails.plugins.testing.GrailsMockHttpServletRequest
-import org.codehaus.groovy.grails.plugins.testing.GrailsMockHttpServletResponse
 import org.junit.Test
 import org.slf4j.MDC
 
 import javax.servlet.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
+import static org.fest.assertions.api.Assertions.*
+import static org.mockito.Mockito.*
 
 class RequestAndAccessCorrelationFilterTest {
 
+    private HttpServletRequest request = mock(HttpServletRequest.class);
+
+    private HttpServletResponse response = mock(HttpServletResponse.class);
+
     @Test
-    void testAddRandomRequestIdToMDC() throws IOException {
-        final Filter filter = new RequestAndAccessCorrelationFilter()
+    public void echoesRequestId() throws Exception {
+        final String expected = "foo";
 
-        final GrailsMockHttpServletRequest request = new GrailsMockHttpServletRequest()
-        request.setMethod("GET")
-        request.setRequestURI("/hotel/view/1")
-        request.setQueryString("adults=2")
-
-        final GrailsMockHttpServletResponse response = new GrailsMockHttpServletResponse()
-
-        ExecutorService pool = Executors.newSingleThreadExecutor()
-
-        // force thread initialisation in the main thread context, so MDC does not inherits a copy of its parent
-        pool.submit(new Runnable() { void run() {} }).get();
-
-        final FilterChain chain = new FilterChain() {
+        final Filter f = new RequestAndAccessCorrelationFilter();
+        final FilterChain c = new FilterChain() {
             @Override
-            void doFilter(final ServletRequest req, final ServletResponse resp) throws IOException, ServletException {
-
-                // MDC should be set on this thread during filter chain processing
-                assert MDC.get("requestId") != null
-
-                // But should not be set on other threads
-                pool.submit(new Runnable() {
-                    public void run() {
-                        assert MDC.get("requestId") == null
-                    }
-                }).get()
+            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+                assertThat(MDC.get("requestId"))
+                        .isEqualTo(expected);
             }
         };
 
-        assert MDC.get("requestId") == null // MDC should not be empty prior execution
-        filter.doFilter(request, response, chain)
-        assert MDC.get("requestId") == null // MDC should clean itself up
+        when(request.getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID)).thenReturn(expected);
+        when(request.getAttribute(RequestAndAccessCorrelationFilter.START_TIME)).thenReturn(0L);
 
-        pool.shutdown();
+        f.doFilter(request, response, c);
+
+        verify(response, times(1)).setHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, expected);
+
+        assertThat(MDC.get("requestId"))
+                .isEqualTo(expected);
+        assertThat(MDC.get("timeTaken"))
+                .isNotNull();
+    }
+
+    @Test
+    public void generatesRequestIdIfNoneGiven() throws Exception {
+        final StringBuffer got = new StringBuffer();
+        final Filter f = new RequestAndAccessCorrelationFilter();
+        final FilterChain c = new FilterChain() {
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+                final String requestId = MDC.get("requestId");
+                got.append(requestId);
+
+                assertThat(requestId)
+                        .isNotEmpty();
+            }
+        };
+
+        when(request.getAttribute(RequestAndAccessCorrelationFilter.START_TIME)).thenReturn(0L);
+
+        f.doFilter(request, response, c);
+
+        verify(response, times(1)).setHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, got.toString());
+
+        assertThat(MDC.get("requestId"))
+                .isNotNull();
+        assertThat(MDC.get("timeTaken"))
+                .isNotNull();
+
     }
 
 
