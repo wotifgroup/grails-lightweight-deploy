@@ -38,8 +38,6 @@ public class RequestAndAccessCorrelationFilter implements Filter {
             ServletException {
         request.setAttribute(START_TIME, System.currentTimeMillis());
 
-        MDC.clear();
-
         if (request instanceof HttpServletRequest) {
             final HttpServletRequest httpRequest = (HttpServletRequest) request;
             final HttpServletResponse httpResponse = (HttpServletResponse) response;

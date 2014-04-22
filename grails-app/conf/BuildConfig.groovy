@@ -36,6 +36,9 @@ grails.project.dependency.resolution = {
 		compile ('org.eclipse.jetty.aggregate:jetty-all:8.1.11.v20130520') {
             exclude 'javax.servlet'
 		}
+
+        test "org.mockito:mockito-all:1.9.5",
+             "org.easytesting:fest-assert-core:2.0M10"
     }
 
     plugins {
