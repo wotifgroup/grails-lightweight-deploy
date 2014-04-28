@@ -11,9 +11,11 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.codahale.metrics.servlets.AdminServlet;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
+import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
@@ -21,8 +23,10 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.handler.GzipHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.GzipFilter;
@@ -193,7 +197,6 @@ public class Launcher {
     }
 
     protected Handler createInternalContext(Server server) {
-
         final ServletContextHandler handler = new InternalContext(getHealthCheckRegistry(), getMetricsRegistry());
 
         //bind this context to the external connector
@@ -210,6 +213,20 @@ public class Launcher {
 
     protected Handler createExternalContext(Server server, String webAppRoot) throws IOException {
         final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
+
+        // Enable sessions support if required
+        final SessionsConfiguration sessionsConfiguration = configuration.getHttpConfiguration().getSessionsConfiguration();
+        if (sessionsConfiguration.isEnabled()) {
+            final HashSessionIdManager idManager = new HashSessionIdManager();
+            if (!Strings.isNullOrEmpty(sessionsConfiguration.getWorkerName())) {
+                idManager.setWorkerName(sessionsConfiguration.getWorkerName());
+            }
+
+            // Assumes ExternalContext extends WebAppContext which configures sessions by default
+            handler.getSessionHandler().getSessionManager().setSessionIdManager(idManager);
+        } else {
+            handler.setSessionHandler(null);
+        }
 
         //bind this context to the external connector
         handler.setConnectorNames(getConnectorNames(server));
