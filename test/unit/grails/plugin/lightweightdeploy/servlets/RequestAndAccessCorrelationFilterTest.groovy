@@ -1,74 +1,106 @@
 package grails.plugin.lightweightdeploy.servlets
 
+import org.codehaus.groovy.grails.plugins.testing.GrailsMockHttpServletRequest
+import org.codehaus.groovy.grails.plugins.testing.GrailsMockHttpServletResponse
 import org.junit.Test
 import org.slf4j.MDC
 
 import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import static org.fest.assertions.api.Assertions.*
-import static org.mockito.Mockito.*
+import static org.fest.assertions.api.Assertions.assertThat
 
 class RequestAndAccessCorrelationFilterTest {
 
-    private HttpServletRequest request = mock(HttpServletRequest.class);
-
-    private HttpServletResponse response = mock(HttpServletResponse.class);
-
     @Test
     public void echoesRequestId() throws Exception {
+        final GrailsMockHttpServletRequest mockRequest = new GrailsMockHttpServletRequest();
+        final GrailsMockHttpServletResponse mockResponse = new GrailsMockHttpServletResponse();
         final String expected = "foo";
+
+        mockRequest.setRemoteAddr("127.0.0.1");
+        mockRequest.addHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, expected);
 
         final Filter f = new RequestAndAccessCorrelationFilter();
         final FilterChain c = new FilterChain() {
             @Override
             public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-                assertThat(MDC.get("requestId"))
+                assertThat(((HttpServletResponse) response).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                        .isEqualTo(expected);
+                assertThat(MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID))
                         .isEqualTo(expected);
             }
         };
 
-        when(request.getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID)).thenReturn(expected);
-        when(request.getAttribute(RequestAndAccessCorrelationFilter.START_TIME)).thenReturn(0L);
+        f.doFilter(mockRequest, mockResponse, c);
 
-        f.doFilter(request, response, c);
-
-        verify(response, times(1)).setHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, expected);
-
-        assertThat(MDC.get("requestId"))
+        assertThat(((HttpServletResponse) mockResponse).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
                 .isEqualTo(expected);
-        assertThat(MDC.get("timeTaken"))
-                .isNotNull();
+        assertThat(MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID))
+                .isEqualTo(expected);
     }
 
     @Test
     public void generatesRequestIdIfNoneGiven() throws Exception {
+        final GrailsMockHttpServletRequest mockRequest = new GrailsMockHttpServletRequest();
+        final GrailsMockHttpServletResponse mockResponse = new GrailsMockHttpServletResponse();
+
+        mockRequest.setRemoteAddr("127.0.0.1");
+
         final StringBuffer got = new StringBuffer();
         final Filter f = new RequestAndAccessCorrelationFilter();
         final FilterChain c = new FilterChain() {
             @Override
             public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-                final String requestId = MDC.get("requestId");
+                final String requestId = MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID);
                 got.append(requestId);
 
+                assertThat(((HttpServletResponse) response).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                        .isNotNull();
                 assertThat(requestId)
-                        .isNotEmpty();
+                        .isNotNull();
             }
         };
 
-        when(request.getAttribute(RequestAndAccessCorrelationFilter.START_TIME)).thenReturn(0L);
+        f.doFilter(mockRequest, mockResponse, c);
 
-        f.doFilter(request, response, c);
-
-        verify(response, times(1)).setHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, got.toString());
-
-        assertThat(MDC.get("requestId"))
+        assertThat(((HttpServletResponse) mockResponse).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
                 .isNotNull();
-        assertThat(MDC.get("timeTaken"))
+        assertThat(MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID))
                 .isNotNull();
-
     }
 
+    @Test
+    public void generatesRequestIfNotLocalRequestAndDoesntSendItBack() throws Exception {
+        final GrailsMockHttpServletRequest mockRequest = new GrailsMockHttpServletRequest();
+        final GrailsMockHttpServletResponse mockResponse = new GrailsMockHttpServletResponse();
+
+        final String notExpected = "foo";
+
+        mockRequest.setRemoteAddr("8.8.8.8");
+        mockRequest.addHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, notExpected);
+
+        final StringBuffer got = new StringBuffer();
+        final Filter f = new RequestAndAccessCorrelationFilter();
+        final FilterChain c = new FilterChain() {
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+                final String requestId = MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID);
+                got.append(requestId);
+
+                assertThat(((HttpServletResponse) response).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                        .isNull();
+                assertThat(requestId)
+                        .isNotEqualTo(notExpected);
+            }
+        };
+
+        f.doFilter(mockRequest, mockResponse, c);
+
+        assertThat(((HttpServletResponse) mockResponse).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                .isNull();
+        assertThat(MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID))
+                .isNotEqualTo(notExpected);
+    }
 
 }
