@@ -44,6 +44,7 @@ public class RequestAndAccessCorrelationFilter implements Filter {
 
             MDC.put(REQUEST_ID, requestId);
             request.setAttribute(REQUEST_ID, requestId);
+            // Response headers must be set prior to handling request as Transfer-Encoding is "chunked"
             sendRequestId(siteLocal, (HttpServletResponse) response, requestId);
         }
 
