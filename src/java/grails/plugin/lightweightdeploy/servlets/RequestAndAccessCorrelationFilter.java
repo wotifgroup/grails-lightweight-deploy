@@ -52,8 +52,13 @@ public class RequestAndAccessCorrelationFilter implements Filter {
     }
 
     private boolean isSiteLocalRequest(final ServletRequest request) {
-        InetAddress inetAddress = InetAddresses.forString(request.getRemoteAddr());
-        return inetAddress.isLoopbackAddress() || inetAddress.isSiteLocalAddress();
+        // If the address is invalid it's probably from the Internet
+        try {
+            InetAddress inetAddress = InetAddresses.forString(request.getRemoteAddr());
+            return inetAddress.isLoopbackAddress() || inetAddress.isSiteLocalAddress();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     // TODO: Move this to common request handler library
