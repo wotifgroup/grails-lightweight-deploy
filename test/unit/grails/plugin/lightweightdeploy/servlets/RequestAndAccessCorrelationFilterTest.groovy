@@ -103,4 +103,37 @@ class RequestAndAccessCorrelationFilterTest {
                 .isNotEqualTo(notExpected);
     }
 
+    @Test
+    public void generatesRequestIfCrapRequestAndDoesntSendItBack() throws Exception {
+        final GrailsMockHttpServletRequest mockRequest = new GrailsMockHttpServletRequest();
+        final GrailsMockHttpServletResponse mockResponse = new GrailsMockHttpServletResponse();
+
+        final String notExpected = "foo";
+
+        mockRequest.setRemoteAddr("unknown");
+        mockRequest.addHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID, notExpected);
+
+        final StringBuffer got = new StringBuffer();
+        final Filter f = new RequestAndAccessCorrelationFilter();
+        final FilterChain c = new FilterChain() {
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+                final String requestId = MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID);
+                got.append(requestId);
+
+                assertThat(((HttpServletResponse) response).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                        .isNull();
+                assertThat(requestId)
+                        .isNotEqualTo(notExpected);
+            }
+        };
+
+        f.doFilter(mockRequest, mockResponse, c);
+
+        assertThat(((HttpServletResponse) mockResponse).getHeader(RequestAndAccessCorrelationFilter.X_OPAQUE_ID))
+                .isNull();
+        assertThat(MDC.get(RequestAndAccessCorrelationFilter.REQUEST_ID))
+                .isNotEqualTo(notExpected);
+    }
+
 }
