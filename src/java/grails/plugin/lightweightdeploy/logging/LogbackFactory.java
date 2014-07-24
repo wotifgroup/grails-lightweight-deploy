@@ -13,6 +13,7 @@ import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.spi.FilterAttachable;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -97,12 +98,15 @@ public class LogbackFactory {
 
     public static Set<OutputStreamAppender<ILoggingEvent>> buildAppenders(LoggingConfiguration configuration, LoggerContext context) {
         final Set<OutputStreamAppender<ILoggingEvent>> appenders = new HashSet<OutputStreamAppender<ILoggingEvent>>();
-        if (configuration.hasFileConfiguration()) {
-            appenders.add(buildFileAppender(configuration.getFileConfiguration(), context));
-        }
-        if (configuration.hasConsoleConfiguration()) {
-            appenders.add(buildConsoleAppender(configuration.getConsoleConfiguration(), context));
+        List<AbstractLoggingConfiguration> appenderConfigs = configuration.getAppenderConfigurations();
+        for (AbstractLoggingConfiguration appenderConfig : appenderConfigs) {
+            if (appenderConfig instanceof ConsoleLoggingConfiguration) {
+                appenders.add(buildConsoleAppender((ConsoleLoggingConfiguration) appenderConfig, context));
+            } else if (appenderConfig instanceof FileLoggingConfiguration) {
+                appenders.add(buildFileAppender((FileLoggingConfiguration) appenderConfig, context));
+            }
         }
         return appenders;
     }
+
 }
