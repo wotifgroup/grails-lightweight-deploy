@@ -68,42 +68,12 @@ public class LoggingConfiguration {
         }
     }
 
-    @Deprecated
-    public FileLoggingConfiguration getFileConfiguration() {
-        for (AbstractLoggingConfiguration appenderConfig : appenderConfigurations) {
-            if (appenderConfig instanceof FileLoggingConfiguration) {
-                return (FileLoggingConfiguration) appenderConfig;
-            }
-        }
-        return null;
-    }
-
-    @Deprecated
-    public ConsoleLoggingConfiguration getConsoleConfiguration() {
-        for (AbstractLoggingConfiguration appenderConfig : appenderConfigurations) {
-            if (appenderConfig instanceof ConsoleLoggingConfiguration) {
-                return (ConsoleLoggingConfiguration) appenderConfig;
-            }
-        }
-        return null;
-    }
-
     public Level getRootLevel() {
         return rootLevel;
     }
 
     public Map<String, Level> getLoggers() {
         return loggers;
-    }
-
-    @Deprecated
-    public boolean hasFileConfiguration() {
-        return getFileConfiguration() != null;
-    }
-
-    @Deprecated
-    public boolean hasConsoleConfiguration() {
-        return getConsoleConfiguration() != null;
     }
 
     public TimeZone getTimeZone() {
