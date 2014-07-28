@@ -54,7 +54,8 @@ http:
     adminPort: 8048
 
 logging:
-    file:
+    appenders:
+      - type: file
         currentLogFilename: ./server.log
         rootLevel: INFO
 ```
@@ -94,7 +95,9 @@ http:
         port: 8081
     #If specified, then an access log will be written.
     requestLog:
-        file:
+        appenders:
+          #The type of appender (file or console).
+          - type: file
             #The path to the file to write access log to.
             currentLogFilename: ./server_access_log.txt
 
@@ -103,9 +106,11 @@ logging:
     loggers:
         foo: ERROR
         bar.baz: DEBUG
-    #The default log level - note that in previous versions rootLevel used to sit under file propety, this will throw an exception now if the config remains after updating to this version
-    rootLevel: INFO
-    file:
+    #The default log level - note that in previous versions this was called rootLevel and used to sit under file property, this will throw an exception now if the config remains after updating to this version
+    level: INFO
+    appenders:
+      #Logs to a file.
+      - type: file
         #The path to the file to write the server log to.
         currentLogFilename: ./server.log
         #The threshold over which log statements must be before being logged.
@@ -114,7 +119,8 @@ logging:
         timeZone: GMT+10
         # specify a log format for the file log 
         logFormat: "%-5p [%d{ISO8601,GMT+10}] [%-30thread] %c: %m%n%xEx"
-    console:
+      #Logs to the console.
+      - type: console
         # the timezone to print dates in (defaults to TimeZone.getDefault())
         timeZone: GMT+10
         # the threshold over which log statements must be before being logged.
