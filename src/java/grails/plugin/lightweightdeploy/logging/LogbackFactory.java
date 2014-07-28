@@ -7,10 +7,13 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.OutputStreamAppender;
+import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.rolling.DefaultTimeBasedFileNamingAndTriggeringPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.spi.FilterAttachable;
+import ch.qos.logback.core.spi.FilterReply;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.HashSet;
 import java.util.List;
@@ -89,6 +92,14 @@ public class LogbackFactory {
         return appender;
     }
 
+    public static OutputStreamAppender<ILoggingEvent> buildFilteredAppender(final FilteredLoggingConfiguration filtered,
+                                                                            LoggerContext context) {
+        AbstractLoggingConfiguration appenderConfig = filtered.getAppender();
+        OutputStreamAppender<ILoggingEvent> appender = buildAppender(appenderConfig, context);
+        appender.addFilter(new LogEventFilter(filtered));
+        return appender;
+    }
+
     private static void addThresholdFilter(FilterAttachable<ILoggingEvent> appender, Level threshold) {
         final ThresholdFilter filter = new ThresholdFilter();
         filter.setLevel(threshold.toString());
@@ -96,17 +107,52 @@ public class LogbackFactory {
         appender.addFilter(filter);
     }
 
-    public static Set<OutputStreamAppender<ILoggingEvent>> buildAppenders(LoggingConfiguration configuration, LoggerContext context) {
+    public static Set<OutputStreamAppender<ILoggingEvent>> buildAppenders(LoggingConfiguration configuration,
+                                                                          LoggerContext context) {
         final Set<OutputStreamAppender<ILoggingEvent>> appenders = new HashSet<OutputStreamAppender<ILoggingEvent>>();
         List<AbstractLoggingConfiguration> appenderConfigs = configuration.getAppenderConfigurations();
         for (AbstractLoggingConfiguration appenderConfig : appenderConfigs) {
-            if (appenderConfig instanceof ConsoleLoggingConfiguration) {
-                appenders.add(buildConsoleAppender((ConsoleLoggingConfiguration) appenderConfig, context));
-            } else if (appenderConfig instanceof FileLoggingConfiguration) {
-                appenders.add(buildFileAppender((FileLoggingConfiguration) appenderConfig, context));
-            }
+            appenders.add(buildAppender(appenderConfig, context));
         }
         return appenders;
+    }
+
+    private static OutputStreamAppender<ILoggingEvent> buildAppender(AbstractLoggingConfiguration appenderConfig,
+                                                                     LoggerContext context) {
+        if (appenderConfig instanceof ConsoleLoggingConfiguration) {
+            return buildConsoleAppender((ConsoleLoggingConfiguration) appenderConfig, context);
+        } else if (appenderConfig instanceof FileLoggingConfiguration) {
+            return buildFileAppender((FileLoggingConfiguration) appenderConfig, context);
+        } else if (appenderConfig instanceof FilteredLoggingConfiguration) {
+            return buildFilteredAppender((FilteredLoggingConfiguration) appenderConfig, context);
+        } else {
+            throw new IllegalArgumentException("Unrecognised appender config type: " + appenderConfig.getClass());
+        }
+    }
+
+    private static class LogEventFilter extends Filter<ILoggingEvent> {
+
+        private final Set<String> includedLoggerNames;
+        private final Set<String> excludedLoggerNames;
+
+        public LogEventFilter(FilteredLoggingConfiguration filtered) {
+            includedLoggerNames = ImmutableSet.copyOf(filtered.getInclusions());
+            excludedLoggerNames = ImmutableSet.copyOf(filtered.getExclusions());
+        }
+
+        @Override
+        public FilterReply decide(ILoggingEvent event) {
+            String loggerName = event.getLoggerName();
+
+            if (!includedLoggerNames.isEmpty() && !includedLoggerNames.contains(loggerName)) {
+                return FilterReply.DENY;
+            } else if (excludedLoggerNames.contains(loggerName)) {
+                return FilterReply.DENY;
+            } else {
+                return FilterReply.NEUTRAL;
+            }
+        }
+
     }
 
 }

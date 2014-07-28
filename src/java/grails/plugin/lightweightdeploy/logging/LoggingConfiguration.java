@@ -57,12 +57,14 @@ public class LoggingConfiguration {
         return unmodifiableList(appenderConfigurations);
     }
 
-    private static AbstractLoggingConfiguration createAppenderConfiguration(Map<String, ?> appenderConfig) {
+    static AbstractLoggingConfiguration createAppenderConfiguration(Map<String, ?> appenderConfig) {
         String type = appenderConfig.get("type").toString();
         if (type.equals("file")) {
             return new FileLoggingConfiguration(appenderConfig);
         } else if (type.equals("console")) {
             return new ConsoleLoggingConfiguration(appenderConfig);
+        } else if (type.equals("filtered")) {
+            return new FilteredLoggingConfiguration(appenderConfig);
         } else {
             throw new IllegalArgumentException("Unknown appender type '" + type + "'");
         }

@@ -210,6 +210,62 @@ public class ConfigurationTest {
     }
 
     @Test
+    void serverFilteredLoggingShouldBeSupported() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertNotNull(configuration.serverLogConfiguration.appenderConfigurations[0])
+    }
+
+    @Test
+    void serverFilteredLoggingShouldWrapAnotherAppender() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("[%d{ISO8601}] %m%n",
+                configuration.serverLogConfiguration.appenderConfigurations[0].appender.logFormat.get())
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void serverFilteredLoggingMustWrapAnotherAppender() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config).appenders[0].remove("appender")
+        new Configuration(config)
+    }
+
+    @Test
+    void serverFilteredLoggingShouldUseInclusionsFromFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config).appenders[0].includes = ["foo"]
+        Configuration configuration = new Configuration(config)
+        assertEquals(["foo"].toSet(), configuration.serverLogConfiguration.appenderConfigurations[0].inclusions)
+    }
+
+    @Test
+    void serverFilteredLoggingInclusionsShouldBeOptional() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config).appenders[0].remove("includes")
+        Configuration configuration = new Configuration(config)
+        assertEquals([].toSet(), configuration.serverLogConfiguration.appenderConfigurations[0].inclusions)
+    }
+
+    @Test
+    void serverFilteredLoggingShouldUseExclusionsFromFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config).appenders[0].excludes = ["bar"]
+        Configuration configuration = new Configuration(config)
+        assertEquals(["bar"].toSet(), configuration.serverLogConfiguration.appenderConfigurations[0].exclusions)
+    }
+
+    @Test
+    void serverFilteredLoggingExclusionsShouldBeOptional() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachServerFilteredLoggingConfig(config).appenders[0].remove("excludes")
+        Configuration configuration = new Configuration(config)
+        assertEquals([].toSet(), configuration.serverLogConfiguration.appenderConfigurations[0].exclusions)
+    }
+
+    @Test
     void requestLoggingThresholdShouldDefaultToAll() throws IOException {
         Map<String, ? extends Object> config = defaultConfig()
         attachRequestLoggingConfig(config).appenders[0].remove("threshold")
@@ -459,6 +515,24 @@ public class ConfigurationTest {
                 threshold: Level.DEBUG.levelStr,
                 timeZone: "GMT+10",
                 logFormat: "[%d{ISO8601}] %m%n"
+        ]
+        config.logging
+    }
+
+    protected Map<String, Object> attachServerFilteredLoggingConfig(Map<String, Map<String, Object>> config) {
+        if (!config.logging) {
+            attachServerLoggingConfig(config)
+        }
+        config.logging.appenders += [
+                type    : "filtered",
+                includes: ["foo"],
+                appender: [
+                        type              : "file",
+                        threshold         : Level.DEBUG.levelStr,
+                        currentLogFilename: "/app/logs/server.log",
+                        timeZone          : "GMT+10",
+                        logFormat         : "[%d{ISO8601}] %m%n"
+                ]
         ]
         config.logging
     }
