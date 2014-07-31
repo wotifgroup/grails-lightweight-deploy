@@ -203,19 +203,21 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
         buf.append(' ');
         buf.append(request.getAttribute("requestId"));
 
+        String cookies = null;
         List<String> trackingHeaders = Arrays.asList("__utma", "s_fid", "wgid"); // Interesting Cookies
 
-        String cookies = "";
-        for(Cookie cookie : request.getCookies()) {
-            if (trackingHeaders.contains(cookie.getName())) {
-                if(cookies.length() > 0)cookies = cookies.concat("; ");
-                cookies = cookies.concat(cookie.getName() + '=' + cookie.getValue());
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (trackingHeaders.contains(cookie.getName())) {
+                    cookies = (cookies != null) ? cookies.concat("; ") : "\"";
+                    cookies = cookies.concat(cookie.getName() + '=' + cookie.getValue());
+                }
             }
+            if (cookies != null) cookies = cookies + '"';
         }
 
-        buf.append(" \"");
+        buf.append(' ');
         buf.append(cookies);
-        buf.append('"');
 
         queue.add(buf.toString());
     }
