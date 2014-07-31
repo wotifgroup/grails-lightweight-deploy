@@ -42,7 +42,8 @@ public class RequestLoggingFactory {
         final RequestLogHandler handler = new RequestLogHandler();
         handler.setRequestLog(new AsyncRequestLog(Clock.defaultClock(),
                 appenders,
-                config.getRequestLogConfiguration().getTimeZone()));
+                config.getRequestLogConfiguration().getTimeZone(),
+                config.getRequestLogConfiguration().getTrackingCookies()));
 
         return handler;
 

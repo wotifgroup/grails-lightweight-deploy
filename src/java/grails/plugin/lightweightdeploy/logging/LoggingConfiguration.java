@@ -19,6 +19,7 @@ public class LoggingConfiguration {
     private List<AbstractLoggingConfiguration> appenderConfigurations = new ArrayList<AbstractLoggingConfiguration>();
     private Level rootLevel = Level.INFO;
     private Map<String, Level> loggers = new HashMap<String, Level>();
+    private List<String> trackingCookies = new ArrayList<String>();
 
     public LoggingConfiguration(Map<String, ?> config) {
         if (config.containsKey("level")) {
@@ -34,6 +35,9 @@ public class LoggingConfiguration {
             for (Map.Entry<String, ?> entry : ((Map<String, ?>) config.get("loggers")).entrySet()) {
                 loggers.put(entry.getKey(), Level.toLevel(entry.getValue().toString()));
             }
+        }
+        if (config.containsKey("cookies")) {
+            trackingCookies = (List<String>) config.get("cookies");
         }
 
         // handle deprecated logging format
@@ -69,6 +73,8 @@ public class LoggingConfiguration {
             throw new IllegalArgumentException("Unknown appender type '" + type + "'");
         }
     }
+
+    public List<String> getTrackingCookies() { return trackingCookies; }
 
     public Level getRootLevel() {
         return rootLevel;

@@ -25,6 +25,7 @@ import javax.servlet.http.Cookie;
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
     private static final int BATCH_SIZE = 10000;
+    private List<String> trackingCookies;
 
     private class Dispatcher implements Runnable {
         private volatile boolean running = true;
@@ -66,8 +67,10 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
 
     public AsyncRequestLog(Clock clock,
                            AppenderAttachableImpl<ILoggingEvent> appenders,
-                           final TimeZone timeZone) {
+                           final TimeZone timeZone,
+                           List<String> cookies) {
         this.clock = clock;
+        this.trackingCookies = cookies;
         this.queue = new LinkedBlockingQueue<String>();
         this.dispatcher = new Dispatcher();
         this.dispatchThread = new Thread(dispatcher);
@@ -203,21 +206,20 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
         buf.append(' ');
         buf.append(request.getAttribute("requestId"));
 
-        String cookies = null;
-        List<String> trackingHeaders = Arrays.asList("__utma", "s_fid", "wgid"); // Interesting Cookies
-
+        buf.append(" \"");
         if (request.getCookies() != null) {
+            boolean firstCookie = true;
             for (Cookie cookie : request.getCookies()) {
-                if (trackingHeaders.contains(cookie.getName())) {
-                    cookies = (cookies != null) ? cookies.concat("; ") : "\"";
-                    cookies = cookies.concat(cookie.getName() + '=' + cookie.getValue());
+                if (trackingCookies.contains(cookie.getName())) {
+                    if (!firstCookie) buf.append("; ");
+                    buf.append(cookie.getName());
+                    buf.append('=');
+                    buf.append(cookie.getValue());
+                    firstCookie = false;
                 }
             }
-            if (cookies != null) cookies = cookies + '"';
         }
-
-        buf.append(' ');
-        buf.append(cookies);
+        buf.append('"');
 
         queue.add(buf.toString());
     }

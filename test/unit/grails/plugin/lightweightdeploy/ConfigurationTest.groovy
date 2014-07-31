@@ -315,6 +315,15 @@ public class ConfigurationTest {
     }
 
     @Test
+    void requestLoggingCookiesShouldBeSetToValueInFile() throws IOException {
+        Map<String, Map<String, Object>> config = defaultConfig()
+        attachRequestLoggingConfig(config)
+        Configuration configuration = new Configuration(config)
+        assertEquals("test1", configuration.requestLogConfiguration.trackingCookies.get(0))
+        assertEquals("test2", configuration.requestLogConfiguration.trackingCookies.get(1))
+    }
+
+    @Test
     public void deprecatedServerFileLoggingFormatSupported() throws Exception {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachDeprecatedServerFileLoggingConfig(config)
@@ -459,7 +468,8 @@ public class ConfigurationTest {
                                 currentLogFilename: "/app/logs/request.log",
                                 timeZone: "GMT+10"
                         ]
-                ]]
+                ],
+                cookies: ["test1", "test2"]]
         config.http.requestLog
     }
 
