@@ -6,11 +6,8 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import com.codahale.metrics.Clock;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +19,8 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.MDC;
+
+import javax.servlet.http.Cookie;
 
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
@@ -203,6 +202,21 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
 
         buf.append(' ');
         buf.append(request.getAttribute("requestId"));
+
+        // Cookies we are interested in logging
+        List<String> trackingHeaders = Arrays.asList("__utma", "s_fid", "wgid"); // Interesting Cookies
+
+        String cookies = "";
+        for(Cookie cookie : request.getCookies()) {
+            if (trackingHeaders.contains(cookie.getName())) {
+                if(cookies.length() > 0)cookies = cookies.concat("; ");
+                cookies = cookies.concat(cookie.getName() + '=' + cookie.getValue());
+            }
+        }
+
+        buf.append(" \"");
+        buf.append(cookies);
+        buf.append('"');
 
         queue.add(buf.toString());
     }
