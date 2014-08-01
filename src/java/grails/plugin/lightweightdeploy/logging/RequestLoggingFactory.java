@@ -43,7 +43,7 @@ public class RequestLoggingFactory {
         handler.setRequestLog(new AsyncRequestLog(Clock.defaultClock(),
                 appenders,
                 config.getRequestLogConfiguration().getTimeZone(),
-                config.getRequestLogConfiguration().getTrackingCookies()));
+                config.getRequestLogConfiguration().getCookies()));
 
         return handler;
 

@@ -25,7 +25,7 @@ import javax.servlet.http.Cookie;
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
     private static final int BATCH_SIZE = 10000;
-    private List<String> trackingCookies;
+    private List<String> cookies;
 
     private class Dispatcher implements Runnable {
         private volatile boolean running = true;
@@ -70,7 +70,7 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
                            final TimeZone timeZone,
                            List<String> cookies) {
         this.clock = clock;
-        this.trackingCookies = cookies;
+        this.cookies = cookies;
         this.queue = new LinkedBlockingQueue<String>();
         this.dispatcher = new Dispatcher();
         this.dispatchThread = new Thread(dispatcher);
@@ -210,12 +210,12 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
         if (request.getCookies() != null) {
             boolean firstCookie = true;
             for (Cookie cookie : request.getCookies()) {
-                if (trackingCookies.contains(cookie.getName())) {
+                if (cookies.contains(cookie.getName())) {
                     if (!firstCookie) buf.append("; ");
                     buf.append(cookie.getName());
                     buf.append('=');
                     buf.append(cookie.getValue());
-                    firstCookie = false;
+                    if (firstCookie) firstCookie = false;
                 }
             }
         }

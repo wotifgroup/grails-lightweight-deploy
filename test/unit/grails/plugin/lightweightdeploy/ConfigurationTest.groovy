@@ -319,8 +319,8 @@ public class ConfigurationTest {
         Map<String, Map<String, Object>> config = defaultConfig()
         attachRequestLoggingConfig(config)
         Configuration configuration = new Configuration(config)
-        assertEquals("test1", configuration.requestLogConfiguration.trackingCookies.get(0))
-        assertEquals("test2", configuration.requestLogConfiguration.trackingCookies.get(1))
+        assertEquals("test1", configuration.requestLogConfiguration.cookies.get(0))
+        assertEquals("test2", configuration.requestLogConfiguration.cookies.get(1))
     }
 
     @Test

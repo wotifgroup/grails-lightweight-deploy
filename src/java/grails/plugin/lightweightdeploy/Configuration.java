@@ -2,6 +2,7 @@ package grails.plugin.lightweightdeploy;
 
 import grails.plugin.lightweightdeploy.connector.HttpConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxConfiguration;
+import grails.plugin.lightweightdeploy.logging.HttpLoggingConfiguration;
 import grails.plugin.lightweightdeploy.logging.LoggingConfiguration;
 import java.io.File;
 import java.io.FileReader;
@@ -15,8 +16,8 @@ import org.yaml.snakeyaml.Yaml;
 public class Configuration {
 
     private HttpConfiguration httpConfiguration;
+    private HttpLoggingConfiguration requestLogConfiguration;
     private LoggingConfiguration serverLogConfiguration;
-    private LoggingConfiguration requestLogConfiguration;
     private File workDir;
     private JmxConfiguration jmxConfiguration;
 
@@ -62,7 +63,7 @@ public class Configuration {
     protected void initRequestLogging(Map<String, ?> config) {
         Map<String, ?> httpConfig = (Map<String, ?>) config.get("http");
         if (httpConfig.containsKey("requestLog")) {
-            requestLogConfiguration = new LoggingConfiguration((Map<String, ?>) httpConfig.get("requestLog"));
+            requestLogConfiguration = new HttpLoggingConfiguration((Map<String, ?>) httpConfig.get("requestLog"));
         }
     }
 
@@ -104,7 +105,7 @@ public class Configuration {
         return serverLogConfiguration;
     }
 
-    public LoggingConfiguration getRequestLogConfiguration() {
+    public HttpLoggingConfiguration getRequestLogConfiguration() {
         return requestLogConfiguration;
     }
 
