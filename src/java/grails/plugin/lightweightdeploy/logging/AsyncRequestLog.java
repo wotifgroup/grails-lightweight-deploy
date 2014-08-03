@@ -6,11 +6,8 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import com.codahale.metrics.Clock;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,9 +20,12 @@ import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.MDC;
 
+import javax.servlet.http.Cookie;
+
 public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
     private static final int BATCH_SIZE = 10000;
+    private List<String> cookies;
 
     private class Dispatcher implements Runnable {
         private volatile boolean running = true;
@@ -67,8 +67,10 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
 
     public AsyncRequestLog(Clock clock,
                            AppenderAttachableImpl<ILoggingEvent> appenders,
-                           final TimeZone timeZone) {
+                           final TimeZone timeZone,
+                           List<String> cookies) {
         this.clock = clock;
+        this.cookies = cookies;
         this.queue = new LinkedBlockingQueue<String>();
         this.dispatcher = new Dispatcher();
         this.dispatchThread = new Thread(dispatcher);
@@ -203,6 +205,21 @@ public class AsyncRequestLog extends AbstractLifeCycle implements RequestLog {
 
         buf.append(' ');
         buf.append(request.getAttribute("requestId"));
+
+        buf.append(" \"");
+        if (request.getCookies() != null) {
+            boolean firstCookie = true;
+            for (Cookie cookie : request.getCookies()) {
+                if (cookies.contains(cookie.getName())) {
+                    if (!firstCookie) buf.append("; ");
+                    buf.append(cookie.getName());
+                    buf.append('=');
+                    buf.append(cookie.getValue());
+                    if (firstCookie) firstCookie = false;
+                }
+            }
+        }
+        buf.append('"');
 
         queue.add(buf.toString());
     }

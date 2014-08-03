@@ -7,6 +7,7 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import com.codahale.metrics.Clock;
 import org.eclipse.jetty.http.HttpHeaders;
+import javax.servlet.http.Cookie;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.*;
 import org.junit.After;
@@ -24,10 +25,11 @@ import static org.mockito.Mockito.*;
 public class AsyncRequestLogTest {
 
     private final Clock clock = mock(Clock.class);
+    private final List<String> cookies = ["wgid", "s_fid"];
     @SuppressWarnings("unchecked")
     private final Appender<ILoggingEvent> appender = mock(Appender.class);
     private final AppenderAttachableImpl<ILoggingEvent> appenders = new AppenderAttachableImpl<ILoggingEvent>();
-    private final AsyncRequestLog asyncRequestLog = new AsyncRequestLog(clock, appenders, TimeZone.getTimeZone("UTC"));
+    private final AsyncRequestLog asyncRequestLog = new AsyncRequestLog(clock, appenders, TimeZone.getTimeZone("UTC"), cookies);
 
     private final Request request = mock(Request.class);
     private final Response response = mock(Response.class);
@@ -44,6 +46,7 @@ public class AsyncRequestLogTest {
         when(request.getProtocol()).thenReturn("HTTP/1.1");
         when(request.getAsyncContinuation()).thenReturn(continuation);
         when(request.getDispatchTime()).thenReturn(TimeUnit.SECONDS.toMillis(1353042048));
+        when(request.getCookies()).thenReturn(null);
 
         when(response.getStatus()).thenReturn(200);
         when(response.getContentCount()).thenReturn(8290L);
@@ -74,7 +77,7 @@ public class AsyncRequestLogTest {
         final ILoggingEvent event = logAndCapture();
 
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null");
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null \"\"");
 
         assertThat(event.getLevel())
                 .isEqualTo(Level.INFO);
@@ -86,7 +89,7 @@ public class AsyncRequestLogTest {
 
         final ILoggingEvent event = logAndCapture();
         assertThat(event.getFormattedMessage())
-                .isEqualTo("123.123.123.123 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null");
+                .isEqualTo("123.123.123.123 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null \"\"");
     }
 
     @Test
@@ -104,7 +107,7 @@ public class AsyncRequestLogTest {
 
         final ILoggingEvent event = logAndCapture();
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - coda [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null");
+                .isEqualTo("10.0.0.1 - coda [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null \"\"");
     }
 
     @Test
@@ -114,7 +117,7 @@ public class AsyncRequestLogTest {
         final ILoggingEvent event = logAndCapture();
 
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" Async 8290 \"-\" \"-\" 1000 2000 null");
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" Async 8290 \"-\" \"-\" 1000 2000 null \"\"");
     }
 
     @Test
@@ -124,7 +127,7 @@ public class AsyncRequestLogTest {
         final ILoggingEvent event = logAndCapture();
 
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"referer\" \"-\" 1000 2000 null");
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"referer\" \"-\" 1000 2000 null \"\"");
     }
 
     @Test
@@ -134,7 +137,7 @@ public class AsyncRequestLogTest {
         final ILoggingEvent event = logAndCapture();
 
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"UA/1.0\" 1000 2000 null");
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"UA/1.0\" 1000 2000 null \"\"");
     }
 
     @Test
@@ -144,7 +147,20 @@ public class AsyncRequestLogTest {
         final ILoggingEvent event = logAndCapture();
 
         assertThat(event.getFormattedMessage())
-                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 requestId");
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 requestId \"\"");
+    }
+
+    @Test
+    public void logsTrackingCookie() throws Exception {
+        Cookie[] cookies = new Cookie[2];
+        cookies[0] = new Cookie("wgid", "test");
+        cookies[1] = new Cookie("s_fid", "omniture");
+        when(request.getCookies()).thenReturn(cookies);
+
+        final ILoggingEvent event = logAndCapture();
+
+        assertThat(event.getFormattedMessage())
+                .isEqualTo("10.0.0.1 - - [16/Nov/2012:05:00:47 +0000] \"GET /test/things?yay HTTP/1.1\" 200 8290 \"-\" \"-\" 1000 2000 null \"wgid=test; s_fid=omniture\"");
     }
 
     private ILoggingEvent logAndCapture() {
