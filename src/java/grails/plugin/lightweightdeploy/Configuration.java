@@ -20,6 +20,7 @@ public class Configuration {
     private LoggingConfiguration serverLogConfiguration;
     private File workDir;
     private JmxConfiguration jmxConfiguration;
+    private String appName;
 
     public Configuration(Map<String, ?> config) throws IOException {
         init(config);
@@ -34,6 +35,11 @@ public class Configuration {
         initHttp(config);
         initLogging(config);
         initJmx(config);
+        initAppName(config);
+    }
+
+    protected void initAppName(Map<String, ?> config) throws IOException {
+        this.appName = (String) config.get("appname");
     }
 
     protected void initHttp(Map<String, ?> config) throws IOException {
@@ -111,6 +117,10 @@ public class Configuration {
 
     public File getWorkDir() {
         return workDir;
+    }
+
+    public String getAppName() {
+        return appName;
     }
 
     @Override
