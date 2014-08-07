@@ -19,6 +19,7 @@ import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
+import grails.plugin.lightweightdeploy.logging.StartupShutdownLogger;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
@@ -30,6 +31,7 @@ import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -53,6 +55,7 @@ public class Launcher {
     private Configuration configuration;
     private MetricRegistry metricsRegistry;
     private HealthCheckRegistry healthCheckRegistry;
+    private StartupShutdownLogger startupShutdownLogger;
 
     /**
      * Start the server.
@@ -78,6 +81,7 @@ public class Launcher {
 
         this.metricsRegistry = configureMetricRegistry();
         this.healthCheckRegistry = new HealthCheckRegistry();
+        this.startupShutdownLogger = new StartupShutdownLogger(logger, configuration.getAppName());
 
         configureLogging();
     }
@@ -160,6 +164,9 @@ public class Launcher {
         // Allow a grace period during shutdown
         server.setStopAtShutdown(true);
         server.setGracefulShutdown(2000);
+
+        // Add the shutdown message
+        server.addLifeCycleListener(startupShutdownLogger);
 
         return server;
     }
