@@ -1,12 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2014, Wotif.com. All rights reserved.
-//
-// This is unpublished proprietary source code of Wotif.com.
-// The copyright notice above does not evidence any actual or intended
-// publication of such source code.
-//
-////////////////////////////////////////////////////////////////////////////////
 package grails.plugin.lightweightdeploy.connector;
 
 import com.google.common.base.Objects;
