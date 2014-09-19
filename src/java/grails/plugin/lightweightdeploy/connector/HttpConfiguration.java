@@ -43,6 +43,8 @@ public class HttpConfiguration {
 
     private SslConfiguration sslConfiguration;
 
+    private GzipConfiguration gzipConfiguration = new GzipConfiguration();
+
     public HttpConfiguration(final Map<String, ?> httpConfig) throws IOException {
         this.port = (Integer) httpConfig.get("port");
 
@@ -69,6 +71,10 @@ public class HttpConfiguration {
         if (httpConfig.containsKey("ssl")) {
             Map<String, ?> sslConfig = (Map<String, ?>) httpConfig.get("ssl");
             this.sslConfiguration = new SslConfiguration(sslConfig);
+        }
+
+        if (httpConfig.containsKey("gzip")) {
+            this.gzipConfiguration = new GzipConfiguration((Map<String, ?>) httpConfig.get("gzip"));
         }
     }
 
@@ -154,6 +160,10 @@ public class HttpConfiguration {
 
     public SessionsConfiguration getSessionsConfiguration() {
         return sessionsConfiguration;
+    }
+
+    public GzipConfiguration getGzipConfiguration() {
+        return gzipConfiguration;
     }
 
 }

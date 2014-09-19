@@ -12,33 +12,33 @@ import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
+import grails.plugin.lightweightdeploy.connector.GzipConfiguration;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
+import grails.plugin.lightweightdeploy.jetty.BiDiGzipFilter;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
 import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.StartupShutdownLogger;
-import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.SessionManager;
-import org.eclipse.jetty.server.handler.GzipHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.EnumSet;
 
 /**
  * Based heavily on code from Burt Beckwith's standalone plugin and Codehale's Dropwizard.
@@ -240,22 +240,45 @@ public class Launcher {
 
         configureExternalServlets(handler);
 
+        // Optionally support GZip requests/responses
+        configureGzip(handler);
+
         // Instrument our handler
         final Handler instrumented = new InstrumentedHandler(metricsRegistry, handler);
 
-        // And support GZip responses
-        final GzipHandler gzipHandler = new GzipHandler();
-        gzipHandler.setBufferSize(8 * 1024);
-        gzipHandler.setExcluded(ImmutableSet.<String>of());
-        gzipHandler.setHandler(instrumented);
-        gzipHandler.setMinGzipSize(256);
-        gzipHandler.setMimeTypes(ImmutableSet.of(
-                "application/json", "application/xml", "text/html", "text/plain", "application/javascript",
-                "application/x-javascript", "text/javascript", "text/css", "text/xml", "image/svg+xml"
-        ));
-        gzipHandler.setVary(HttpHeaders.ACCEPT_ENCODING);
+        return instrumented;
+    }
 
-        return gzipHandler;
+    private void configureGzip(ServletContextHandler handler) {
+        GzipConfiguration gzipConfiguration = configuration.getHttpConfiguration().getGzipConfiguration();
+
+        if (gzipConfiguration.isEnabled()) {
+            Filter filter = buildGzipFilter(gzipConfiguration);
+            FilterHolder holder = new FilterHolder(filter);
+            handler.addFilter(holder, "/*", EnumSet.allOf(DispatcherType.class));
+        }
+    }
+
+    private Filter buildGzipFilter(GzipConfiguration gzipConfiguration) {
+        BiDiGzipFilter filter = new BiDiGzipFilter();
+        filter.setMinGzipSize(gzipConfiguration.getMinimumEntitySize());
+        filter.setBufferSize(gzipConfiguration.getBufferSize());
+        filter.setDeflateCompressionLevel(gzipConfiguration.getDeflateCompressionLevel());
+        if (gzipConfiguration.getExcludedUserAgents() != null) {
+            filter.setExcludedAgents(gzipConfiguration.getExcludedUserAgents());
+        }
+        if (gzipConfiguration.getCompressedMimeTypes() != null) {
+            filter.setMimeTypes(gzipConfiguration.getCompressedMimeTypes());
+        }
+        if (gzipConfiguration.getIncludedMethods() != null) {
+            filter.setMethods(gzipConfiguration.getIncludedMethods());
+        }
+        if (gzipConfiguration.getExcludedUserAgentPatterns() != null) {
+            filter.setExcludedAgentPatterns(gzipConfiguration.getExcludedUserAgentPatterns());
+        }
+        filter.setVary(gzipConfiguration.getVary());
+        filter.setDeflateNoWrap(gzipConfiguration.isGzipCompatibleDeflation());
+        return filter;
     }
 
     private static String[] getConnectorNames(Server server) {

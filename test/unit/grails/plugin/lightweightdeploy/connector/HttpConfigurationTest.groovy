@@ -89,6 +89,13 @@ public class HttpConfigurationTest {
         assertEquals("workerName", configuration.sessionsConfiguration.workerName);
     }
 
+    @Test
+    void shouldAssumeGzipIfNoGzipBlock() {
+        Map<String, ? extends Object> config = defaultConfig()
+        HttpConfiguration configuration = new HttpConfiguration(config)
+        assertTrue(configuration.getGzipConfiguration().isEnabled())
+    }
+
     protected Map<String, Map<String, Object>> defaultConfig() {
         [port: 1234,
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",
