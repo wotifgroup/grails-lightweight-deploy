@@ -12,7 +12,9 @@ import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.google.common.base.Strings;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
@@ -21,7 +23,7 @@ import grails.plugin.lightweightdeploy.logging.RequestLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.ServerLoggingFactory;
 import grails.plugin.lightweightdeploy.logging.StartupShutdownLogger;
 import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.server.AbstractConnector;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionManager;
@@ -39,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.Set;
 
 /**
  * Based heavily on code from Burt Beckwith's standalone plugin and Codehale's Dropwizard.
@@ -175,22 +178,24 @@ public class Launcher {
         logger.info("Configuring external connector(s)");
 
         final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration.getHttpConfiguration(), metricsRegistry);
-        for (AbstractConnector externalConnector : connectorFactory.build()) {
-            server.addConnector(externalConnector);
+        final Set<? extends Connector> connectors = connectorFactory.build();
+        for (Connector connector : connectors) {
+            server.addConnector(connector);
         }
 
-        return createExternalContext(server, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createExternalContext(server, connectors, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
     }
 
     protected Handler configureInternal(Server server) {
         logger.info("Configuring admin connector");
 
         final InternalConnectorFactory connectorFactory = new InternalConnectorFactory(getConfiguration().getHttpConfiguration());
-        for (AbstractConnector externalConnector : connectorFactory.build()) {
+        final Set<? extends Connector> connectors = connectorFactory.build();
+        for (Connector externalConnector : connectors) {
             server.addConnector(externalConnector);
         }
 
-        return createInternalContext(server);
+        return createInternalContext(server, connectors);
     }
 
     protected void startJetty(Server server) throws Exception {
@@ -203,14 +208,10 @@ public class Launcher {
         }
     }
 
-    protected Handler createInternalContext(Server server) {
+    protected Handler createInternalContext(Server server, Set<? extends Connector> connectors) {
         final ServletContextHandler handler = new InternalContext(getHealthCheckRegistry(), getMetricsRegistry());
-
-        //bind this context to the external connector
-        handler.setConnectorNames(getConnectorNames(server));
-
+        restrictToConnectors(handler, connectors);
         configureInternalServlets(handler);
-
         return handler;
     }
 
@@ -218,7 +219,7 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-    protected Handler createExternalContext(Server server, String webAppRoot) throws IOException {
+    protected Handler createExternalContext(Server server, Set<? extends Connector> connectors, String webAppRoot) throws IOException {
         final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
 
         // Enable sessions support if required
@@ -235,9 +236,7 @@ public class Launcher {
             handler.setSessionHandler(null);
         }
 
-        //bind this context to the external connector
-        handler.setConnectorNames(getConnectorNames(server));
-
+        restrictToConnectors(handler, connectors);
         configureExternalServlets(handler);
 
         // Instrument our handler
@@ -258,12 +257,8 @@ public class Launcher {
         return gzipHandler;
     }
 
-    private static String[] getConnectorNames(Server server) {
-        String[] connectorNames = new String[server.getConnectors().length];
-        for (int i = 0; i < server.getConnectors().length; i++) {
-            connectorNames[i] = server.getConnectors()[i].getName();
-        }
-        return connectorNames;
+    protected void restrictToConnectors(ServletContextHandler handler, Set<? extends Connector> connectors) {
+        handler.setConnectorNames(Iterables.toArray(Collections2.transform(connectors, ConnectorNameFunction.INSTANCE), String.class));
     }
 
     protected void configureHealthChecks() {
