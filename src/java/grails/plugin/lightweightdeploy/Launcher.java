@@ -60,14 +60,14 @@ public class Launcher {
     /**
      * Start the server.
      */
-    public static void main(String[] args) throws Exception {
-        verifyArgs(args);
-        final Launcher launcher = new Launcher(args[0]);
+    public static void main(String[] args) {
         try {
-            launcher.start();
-        } catch (Exception e) {
+            verifyArgs(args);
+            new Launcher(args[0]).start();
+        } catch (Throwable e) {
+            System.err.println("Failure launching application");
+            e.printStackTrace();
             System.exit(1);
-            throw e;
         }
     }
 

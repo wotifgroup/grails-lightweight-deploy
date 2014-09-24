@@ -149,8 +149,14 @@ public class ApplicationLauncher extends grails.plugin.lightweightdeploy.Launche
     }
 
     public static void main(String[] args) throws IOException {
-        verifyArgs(args);
-		new ApplicationLauncher(args[0]).start();
+        try {
+            verifyArgs(args);
+            new ApplicationLauncher(args[0]).start();
+        } catch (Throwable e) {
+            System.err.println("Failure launching application");
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 }
 ```
