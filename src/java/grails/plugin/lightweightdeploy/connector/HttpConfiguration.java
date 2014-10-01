@@ -11,6 +11,8 @@ public class HttpConfiguration {
 
     private int adminPort = 8081;
 
+    private String contextPath = "/";
+
     private int minThreads = 8;
 
     private int maxThreads = 128;
@@ -44,9 +46,9 @@ public class HttpConfiguration {
     private SslConfiguration sslConfiguration;
 
     public HttpConfiguration(final Map<String, ?> httpConfig) throws IOException {
-        this.port = (Integer) httpConfig.get("port");
-
+        this.port = Objects.firstNonNull((Integer) httpConfig.get("port"), port);
         this.adminPort = Objects.firstNonNull((Integer) httpConfig.get("adminPort"), adminPort);
+        this.contextPath = Objects.firstNonNull((String) httpConfig.get("contextPath"), contextPath);
         this.minThreads = Objects.firstNonNull((Integer) httpConfig.get("minThreads"), minThreads);
         this.maxThreads = Objects.firstNonNull((Integer) httpConfig.get("maxThreads"), maxThreads);
         this.maxIdleTime = Objects.firstNonNull((Integer) httpConfig.get("maxIdleTime"), maxIdleTime);
@@ -78,6 +80,10 @@ public class HttpConfiguration {
 
     public Integer getAdminPort() {
         return adminPort;
+    }
+
+    public String getContextPath() {
+        return contextPath;
     }
 
     public int getMinThreads() {

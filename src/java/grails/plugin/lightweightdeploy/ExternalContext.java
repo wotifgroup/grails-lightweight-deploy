@@ -28,8 +28,9 @@ public class ExternalContext extends WebAppContext {
 
     public ExternalContext(String webAppRoot,
                            MetricRegistry metricsRegistry,
-                           HealthCheckRegistry healthCheckRegistry) throws IOException {
-        super(webAppRoot, "/");
+                           HealthCheckRegistry healthCheckRegistry,
+                           String contextPath) throws IOException {
+        super(webAppRoot, contextPath);
 
         setAttribute(METRICS_REGISTRY_SERVLET_ATTRIBUTE, metricsRegistry);
         setAttribute(HEALTH_CHECK_REGISTRY_SERVLET_ATTRIBUTE, healthCheckRegistry);

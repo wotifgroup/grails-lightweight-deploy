@@ -14,6 +14,7 @@ import com.codahale.metrics.servlets.AdminServlet;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
+import grails.plugin.lightweightdeploy.connector.HttpConfiguration;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
@@ -174,12 +175,13 @@ public class Launcher {
     protected Handler configureExternal(Server server, War war) throws IOException {
         logger.info("Configuring external connector(s)");
 
-        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration.getHttpConfiguration(), metricsRegistry);
+        final HttpConfiguration httpConfiguration = configuration.getHttpConfiguration();
+        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(httpConfiguration, metricsRegistry);
         for (AbstractConnector externalConnector : connectorFactory.build()) {
             server.addConnector(externalConnector);
         }
 
-        return createExternalContext(server, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createExternalContext(server, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR, httpConfiguration.getContextPath());
     }
 
     protected Handler configureInternal(Server server) {
@@ -218,8 +220,8 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-    protected Handler createExternalContext(Server server, String webAppRoot) throws IOException {
-        final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
+    protected Handler createExternalContext(Server server, String webAppRoot, String contextPath) throws IOException {
+        final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry(), contextPath);
 
         // Enable sessions support if required
         final SessionsConfiguration sessionsConfiguration = configuration.getHttpConfiguration().getSessionsConfiguration();
