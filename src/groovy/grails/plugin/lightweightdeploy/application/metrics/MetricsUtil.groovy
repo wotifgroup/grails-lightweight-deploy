@@ -7,28 +7,32 @@ import org.codehaus.groovy.grails.web.context.ServletContextHolder
 
 class MetricsUtil {
 
-    /**
-     * The MetricRegistry to use when Environment == TEST
-     */
-    private static MetricRegistry testMetricRegistry = null
+    private static MetricRegistry fallbackMetricRegistry = null
 
     private MetricsUtil() {
     }
 
     public static MetricRegistry getMetricRegistry() {
-        return getMetricRegistry(Environment.getCurrent())
+        return servletMetricRegistry ?: getFallbackMetricRegistry()
     }
 
+    /**
+     * @deprecated use {@link #getMetricRegistry()} instead
+     */
+    @Deprecated
     public static MetricRegistry getMetricRegistry(Environment environment) {
-        if (Environment.PRODUCTION.equals(environment)) {
-            return (MetricRegistry) ServletContextHolder.servletContext.getAttribute(ExternalContext.METRICS_REGISTRY_SERVLET_ATTRIBUTE)
-        } else {
-            //Not all test types properly bootstrap the servletContext as of Grails 2.2.3. Therefore, in test mode, use
-            //a consistent instance
-            if (!testMetricRegistry) {
-                testMetricRegistry = new MetricRegistry()
-            }
-            return testMetricRegistry
-        }
+        return metricRegistry
     }
+
+    private static MetricRegistry getServletMetricRegistry() {
+        return (MetricRegistry) ServletContextHolder.servletContext?.getAttribute(ExternalContext.METRICS_REGISTRY_SERVLET_ATTRIBUTE)
+    }
+
+    private synchronized static getFallbackMetricRegistry() {
+        if (!fallbackMetricRegistry) {
+            fallbackMetricRegistry = new MetricRegistry()
+        }
+        return fallbackMetricRegistry
+    }
+
 }
