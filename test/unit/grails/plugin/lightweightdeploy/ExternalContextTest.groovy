@@ -39,6 +39,11 @@ class ExternalContextTest {
     }
 
     @Test
+    void contextPathShouldBeSet() {
+        assertEquals("/app", externalContext.contextPath)
+    }
+
+    @Test
     void parentClassLoaderShouldBeUsedFirstToPreserveLogbackSettings() {
         assertTrue(externalContext.parentLoaderPriority)
     }
@@ -59,6 +64,6 @@ class ExternalContextTest {
     }
 
     private ExternalContext getExternalContext() {
-        new ExternalContext(".", new MetricRegistry(), new HealthCheckRegistry())
+        new ExternalContext(".", new MetricRegistry(), new HealthCheckRegistry(), "/app")
     }
 }

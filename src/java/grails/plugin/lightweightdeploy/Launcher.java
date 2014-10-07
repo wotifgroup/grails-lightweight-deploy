@@ -16,6 +16,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import grails.plugin.lightweightdeploy.connector.ExternalConnectorFactory;
+import grails.plugin.lightweightdeploy.connector.HttpConfiguration;
 import grails.plugin.lightweightdeploy.connector.InternalConnectorFactory;
 import grails.plugin.lightweightdeploy.connector.SessionsConfiguration;
 import grails.plugin.lightweightdeploy.jmx.JmxServer;
@@ -63,14 +64,14 @@ public class Launcher {
     /**
      * Start the server.
      */
-    public static void main(String[] args) throws Exception {
-        verifyArgs(args);
-        final Launcher launcher = new Launcher(args[0]);
+    public static void main(String[] args) {
         try {
-            launcher.start();
-        } catch (Exception e) {
+            verifyArgs(args);
+            new Launcher(args[0]).start();
+        } catch (Throwable e) {
+            System.err.println("Failure launching application");
+            e.printStackTrace();
             System.exit(1);
-            throw e;
         }
     }
 
@@ -177,13 +178,14 @@ public class Launcher {
     protected Handler configureExternal(Server server, War war) throws IOException {
         logger.info("Configuring external connector(s)");
 
-        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(configuration.getHttpConfiguration(), metricsRegistry);
+        final HttpConfiguration httpConfiguration = configuration.getHttpConfiguration();
+        final ExternalConnectorFactory connectorFactory = new ExternalConnectorFactory(httpConfiguration, metricsRegistry);
         final Set<? extends Connector> connectors = connectorFactory.build();
         for (Connector connector : connectors) {
             server.addConnector(connector);
         }
 
-        return createExternalContext(server, connectors, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR);
+        return createExternalContext(server, connectors, war.getDirectory().getPath() + "/" + WAR_EXPLODED_SUBDIR, httpConfiguration.getContextPath());
     }
 
     protected Handler configureInternal(Server server) {
@@ -219,8 +221,8 @@ public class Launcher {
         handler.addServlet(new ServletHolder(new AdminServlet()), "/*");
     }
 
-    protected Handler createExternalContext(Server server, Set<? extends Connector> connectors, String webAppRoot) throws IOException {
-        final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry());
+    protected Handler createExternalContext(Server server, Set<? extends Connector> connectors, String webAppRoot, String contextPath) throws IOException {
+        final WebAppContext handler = new ExternalContext(webAppRoot, getMetricsRegistry(), getHealthCheckRegistry(), contextPath);
 
         // Enable sessions support if required
         final SessionsConfiguration sessionsConfiguration = configuration.getHttpConfiguration().getSessionsConfiguration();
