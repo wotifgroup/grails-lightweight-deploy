@@ -96,6 +96,20 @@ public class HttpConfigurationTest {
         assertTrue(configuration.getGzipConfiguration().isEnabled())
     }
 
+    @Test
+    void contextPathShouldDefaultToRoot() {
+        HttpConfiguration configuration = new HttpConfiguration(defaultConfig())
+        assertEquals("/", configuration.getContextPath())
+    }
+
+    @Test
+    void contextPathShouldBeSetIfPresent() {
+        Map<String, ? extends Object> config = defaultConfig()
+        config.contextPath = "/app"
+        HttpConfiguration configuration = new HttpConfiguration(config)
+        assertEquals("/app", configuration.contextPath)
+    }
+
     protected Map<String, Map<String, Object>> defaultConfig() {
         [port: 1234,
                 ssl: [keyStore: "/etc/pki/tls/jks/test.jks",

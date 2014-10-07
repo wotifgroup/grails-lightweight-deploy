@@ -77,6 +77,8 @@ http:
     port: 8080
     #A secondary port which will serve your administrative content. This should be firewalled off from external access. Check http://localhost:8048/ for what it provides.
     adminPort: 8048
+    #The context path at which to run the application.  By default, the application will be run at the root context.
+    contextPath: /
     #The minimum number of threads to keep active to serve requests
     minThreads: 8
     #The maximum number of threads to keep active to serve requests
@@ -170,8 +172,14 @@ public class ApplicationLauncher extends grails.plugin.lightweightdeploy.Launche
     }
 
     public static void main(String[] args) throws IOException {
-        verifyArgs(args);
-		new ApplicationLauncher(args[0]).start();
+        try {
+            verifyArgs(args);
+            new ApplicationLauncher(args[0]).start();
+        } catch (Throwable e) {
+            System.err.println("Failure launching application");
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 }
 ```
