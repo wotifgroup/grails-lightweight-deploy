@@ -90,6 +90,13 @@ public class HttpConfigurationTest {
     }
 
     @Test
+    void shouldAssumeGzipIfNoGzipBlock() {
+        Map<String, ? extends Object> config = defaultConfig()
+        HttpConfiguration configuration = new HttpConfiguration(config)
+        assertTrue(configuration.getGzipConfiguration().isEnabled())
+    }
+
+    @Test
     void contextPathShouldDefaultToRoot() {
         HttpConfiguration configuration = new HttpConfiguration(defaultConfig())
         assertEquals("/", configuration.getContextPath())

@@ -102,6 +102,27 @@ http:
           - type: file
             #The path to the file to write access log to.
             currentLogFilename: ./server_access_log.txt
+    gzip:
+        #If true, all requests with gzip in their Accept-Content-Encoding headers will have their response entities encoded with gzip.
+        enabled: true
+        #All response entities under this size are not compressed.
+        minimumEntitySize: 256
+        #The size of the buffer to use when compressing.
+        bufferSize: 8192
+        #The set of agents to exclude from compression.
+        #excludedUserAgents:
+        #If specified, the set of mime types to compress.
+        #compressedMimeTypes:
+        #If specified, compression will only be applied to these HTTP methods.  `GET` is always used, even if not specified.
+        #includedMethods:
+        #The set of agent patterns to exclude from compression.
+        #excludedUserAgentPatterns:
+        #If true, gzip-compatible deflation will be used.
+        gzipCompatibleDeflation: true
+        #The value of the Vary header sent with responses that could be compressed.
+        vary: Accept-Encoding
+        #The compression level used for deflate compression. (0-9).  See `java.util.zip.Deflater`.
+        deflateCompressionLevel: -1
 
 logging:
     #custom log levels - note that in previous versions loggers used to sit under file property, this will throw an exception now if the config remains after updating to this version 
