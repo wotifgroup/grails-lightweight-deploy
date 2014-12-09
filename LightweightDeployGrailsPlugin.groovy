@@ -12,7 +12,7 @@ This plugin uses some code from both the standalone plugin by Burt Beckwith and 
     def documentation = "https://github.com/wotifgroup/grails-lightweight-deploy/"
 
     def license = "APACHE"
-
+    def organization = [ name: "Wotif", url: "http://www.wotifgroup.com/" ]
     def developers = [
         [ name: "Adam Harwood", email: "adamtroyh@gmail.com" ],
         [ name: "Pete Capra", email: "petey.caps@gmail.com" ],
