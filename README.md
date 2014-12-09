@@ -102,6 +102,12 @@ http:
           - type: file
             #The path to the file to write access log to.
             currentLogFilename: ./server_access_log.txt
+            #Whether or not to archive old events in separate files.
+            archive: true
+            #Required if archive is true. The filename pattern for archived files. %d is replaced with the date in yyyy-MM-dd form, and the fact that it ends with .gz indicates the file will be gzipped as it’s archived. Likewise, filename patterns which end in .zip will be filled as they are archived.
+            archivedLogFilenamePattern: ./server-access-log-%d.txt
+            #The number of archived files to keep.
+            archivedFileCount: 5 
     gzip:
         #If true, all requests with gzip in their Accept-Content-Encoding headers will have their response entities encoded with gzip.
         enabled: true
@@ -136,6 +142,12 @@ logging:
       - type: file
         #The path to the file to write the server log to.
         currentLogFilename: ./server.log
+        #Whether or not to archive old events in separate files.
+        archive: true
+        #Required if archive is true. The filename pattern for archived files. %d is replaced with the date in yyyy-MM-dd form, and the fact that it ends with .gz indicates the file will be gzipped as it’s archived. Likewise, filename patterns which end in .zip will be filled as they are archived.
+        archivedLogFilenamePattern: ./server-%d.log
+        #The number of archived files to keep.
+        archivedFileCount: 5
         #The threshold over which log statements must be before being logged.
         threshold: ALL
         # the timezone to print dates in

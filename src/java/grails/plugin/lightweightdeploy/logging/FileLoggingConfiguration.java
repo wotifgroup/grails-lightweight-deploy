@@ -1,33 +1,38 @@
 package grails.plugin.lightweightdeploy.logging;
 
+import com.google.common.base.Objects;
+
 import java.util.Map;
 
 public class FileLoggingConfiguration extends AbstractLoggingConfiguration {
 
-    private String logFilePath;
+    private String currentLogFilename;
+    private boolean archive;
+    private String archivedLogFilenamePattern;
+    private int archivedFileCount;
 
     public FileLoggingConfiguration(Map<String, ?> config) {
         super(config);
-        this.logFilePath = config.get("currentLogFilename").toString();
+        this.currentLogFilename = config.get("currentLogFilename").toString();
+        this.archive = Objects.firstNonNull((Boolean) config.get("archive"), true);
+        this.archivedLogFilenamePattern = (String) config.get("archivedLogFilenamePattern");
+        this.archivedFileCount = Objects.firstNonNull((Integer) config.get("archivedFileCount"), 5);
     }
 
     public boolean isArchive() {
-        //not currently supported because of bug in logback's file rolling.
-        return false;
+        return archive;
     }
 
     public String getCurrentLogFilename() {
-        return this.logFilePath;
+        return this.currentLogFilename;
     }
 
     public String getArchivedLogFilenamePattern() {
-        //not currently supported because of bug in logback's file rolling.
-        return null;
+        return archivedLogFilenamePattern;
     }
 
     public int getArchivedFileCount() {
-        //not currently supported because of bug in logback's file rolling.
-        return 0;
+        return archivedFileCount;
     }
 
 }
